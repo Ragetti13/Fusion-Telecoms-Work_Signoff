@@ -21,6 +21,9 @@
 		BFAB000C000000000000000A /* JobSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB100C000000000000000A /* JobSummaryCard.swift */; };
 		BFAB000D000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFAB100D000000000000000A /* Assets.xcassets */; };
 		BFAB000E000000000000000A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFAB100E000000000000000A /* Preview Assets.xcassets */; };
+		BFAB000F000000000000000A /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1010000000000000000A /* LocationManager.swift */; };
+		BFAB0010000000000000000A /* PDFFieldExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1011000000000000000A /* PDFFieldExtractor.swift */; };
+		BFAB0011000000000000000A /* PDFImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1012000000000000000A /* PDFImportView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +42,9 @@
 		BFAB100D000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BFAB100E000000000000000A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		BFAB100F000000000000000A /* FusionTelecomsSignoff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FusionTelecomsSignoff.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BFAB1010000000000000000A /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		BFAB1011000000000000000A /* PDFFieldExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFFieldExtractor.swift; sourceTree = "<group>"; };
+		BFAB1012000000000000000A /* PDFImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImportView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +99,7 @@
 				BFAB1008000000000000000A /* SignatureCaptureView.swift */,
 				BFAB1009000000000000000A /* CompletedJobDetailView.swift */,
 				BFAB100B000000000000000A /* SettingsView.swift */,
+				BFAB1012000000000000000A /* PDFImportView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -101,6 +108,8 @@
 			isa = PBXGroup;
 			children = (
 				BFAB100A000000000000000A /* PDFGenerator.swift */,
+				BFAB1010000000000000000A /* LocationManager.swift */,
+				BFAB1011000000000000000A /* PDFFieldExtractor.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -203,6 +212,9 @@
 				BFAB000A000000000000000A /* PDFGenerator.swift in Sources */,
 				BFAB000B000000000000000A /* SettingsView.swift in Sources */,
 				BFAB000C000000000000000A /* JobSummaryCard.swift in Sources */,
+				BFAB000F000000000000000A /* LocationManager.swift in Sources */,
+				BFAB0010000000000000000A /* PDFFieldExtractor.swift in Sources */,
+				BFAB0011000000000000000A /* PDFImportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -341,6 +353,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your current location is used to automatically fill in the site address on work orders.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -369,6 +382,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your current location is used to automatically fill in the site address on work orders.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

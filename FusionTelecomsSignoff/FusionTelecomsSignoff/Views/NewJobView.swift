@@ -1,14 +1,17 @@
 import SwiftUI
+import UIKit
 
 struct NewJobView: View {
     @EnvironmentObject var store: WorkOrderStore
     @Environment(\.dismiss) var dismiss
+    @StateObject private var locationManager = LocationManager()
 
     @State private var jobReference = ""
     @State private var customerName = ""
     @State private var customerAddress = ""
     @State private var workDescription = ""
     @State private var completedDate = Date()
+    @State private var showingPDFImport = false
 
     private var isValid: Bool {
         !customerName.trimmingCharacters(in: .whitespaces).isEmpty &&
@@ -18,17 +21,45 @@ struct NewJobView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // PDF import shortcut at the top
+                Section {
+                    Button {
+                        showingPDFImport = true
+                    } label: {
+                        Label("Import from PDF Order Form", systemImage: "doc.text.magnifyingglass")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+
                 Section("Job Details") {
                     TextField("Job Reference (e.g. JOB-001)", text: $jobReference)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.characters)
+                    // Date auto-fills to today; technician can adjust if needed
                     DatePicker("Date Completed", selection: $completedDate, displayedComponents: [.date, .hourAndMinute])
                 }
 
                 Section("Customer Details") {
                     TextField("Customer Name *", text: $customerName)
+
                     TextField("Site Address", text: $customerAddress, axis: .vertical)
                         .lineLimit(2...4)
+
+                    Button(action: fetchLocation) {
+                        HStack(spacing: 6) {
+                            if locationManager.isLocating {
+                                ProgressView()
+                                    .scaleEffect(0.75)
+                                Text("Locating…")
+                                    .font(.subheadline)
+                            } else {
+                                Image(systemName: "location.fill")
+                                Text("Use Current Location")
+                                    .font(.subheadline)
+                            }
+                        }
+                    }
+                    .disabled(locationManager.isLocating)
                 }
 
                 Section {
@@ -57,6 +88,33 @@ struct NewJobView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+            .sheet(isPresented: $showingPDFImport) {
+                PDFImportView(
+                    jobReference: $jobReference,
+                    customerName: $customerName,
+                    customerAddress: $customerAddress,
+                    workDescription: $workDescription
+                )
+            }
+            .alert("Location Error", isPresented: Binding(
+                get: { locationManager.errorMessage != nil },
+                set: { if !$0 { locationManager.errorMessage = nil } }
+            )) {
+                Button("OK") {}
+                Button("Open Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            } message: {
+                Text(locationManager.errorMessage ?? "")
+            }
+        }
+    }
+
+    private func fetchLocation() {
+        locationManager.fetchAddress { address in
+            customerAddress = address
         }
     }
 
