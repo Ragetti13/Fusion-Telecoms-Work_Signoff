@@ -9,6 +9,7 @@ struct NewJobView: View {
     @State private var jobReference = ""
     @State private var customerName = ""
     @State private var customerAddress = ""
+    @State private var customerEmail = ""
     @State private var workDescription = ""
     @State private var completedDate = Date()
     @State private var showingPDFImport = false
@@ -21,7 +22,6 @@ struct NewJobView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // PDF import shortcut at the top
                 Section {
                     Button {
                         showingPDFImport = true
@@ -35,12 +35,16 @@ struct NewJobView: View {
                     TextField("Job Reference (e.g. JOB-001)", text: $jobReference)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.characters)
-                    // Date auto-fills to today; technician can adjust if needed
                     DatePicker("Date Completed", selection: $completedDate, displayedComponents: [.date, .hourAndMinute])
                 }
 
                 Section("Customer Details") {
                     TextField("Customer Name *", text: $customerName)
+
+                    TextField("Customer Email", text: $customerEmail)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
 
                     TextField("Site Address", text: $customerAddress, axis: .vertical)
                         .lineLimit(2...4)
@@ -48,14 +52,11 @@ struct NewJobView: View {
                     Button(action: fetchLocation) {
                         HStack(spacing: 6) {
                             if locationManager.isLocating {
-                                ProgressView()
-                                    .scaleEffect(0.75)
-                                Text("Locating…")
-                                    .font(.subheadline)
+                                ProgressView().scaleEffect(0.75)
+                                Text("Locating…").font(.subheadline)
                             } else {
                                 Image(systemName: "location.fill")
-                                Text("Use Current Location")
-                                    .font(.subheadline)
+                                Text("Use Current Location").font(.subheadline)
                             }
                         }
                     }
@@ -73,8 +74,7 @@ struct NewJobView: View {
                     Button(action: saveJob) {
                         HStack {
                             Spacer()
-                            Text("Save Job")
-                                .fontWeight(.semibold)
+                            Text("Save Job").fontWeight(.semibold)
                             Spacer()
                         }
                     }
@@ -93,6 +93,7 @@ struct NewJobView: View {
                     jobReference: $jobReference,
                     customerName: $customerName,
                     customerAddress: $customerAddress,
+                    customerEmail: $customerEmail,
                     workDescription: $workDescription
                 )
             }
@@ -123,6 +124,7 @@ struct NewJobView: View {
             jobReference: jobReference.trimmingCharacters(in: .whitespaces),
             customerName: customerName.trimmingCharacters(in: .whitespaces),
             customerAddress: customerAddress.trimmingCharacters(in: .whitespaces),
+            customerEmail: customerEmail.trimmingCharacters(in: .whitespaces),
             workDescription: workDescription.trimmingCharacters(in: .whitespaces),
             completedDate: completedDate,
             technicianName: store.technicianName

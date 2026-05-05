@@ -24,6 +24,8 @@
 		BFAB000F000000000000000A /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1010000000000000000A /* LocationManager.swift */; };
 		BFAB0010000000000000000A /* PDFFieldExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1011000000000000000A /* PDFFieldExtractor.swift */; };
 		BFAB0011000000000000000A /* PDFImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1012000000000000000A /* PDFImportView.swift */; };
+		BFAB0012000000000000000A /* MailComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1013000000000000000A /* MailComposer.swift */; };
+		BFAB0013000000000000000A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1014000000000000000A /* ShareSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +47,8 @@
 		BFAB1010000000000000000A /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		BFAB1011000000000000000A /* PDFFieldExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFFieldExtractor.swift; sourceTree = "<group>"; };
 		BFAB1012000000000000000A /* PDFImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImportView.swift; sourceTree = "<group>"; };
+		BFAB1013000000000000000A /* MailComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailComposer.swift; sourceTree = "<group>"; };
+		BFAB1014000000000000000A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +104,8 @@
 				BFAB1009000000000000000A /* CompletedJobDetailView.swift */,
 				BFAB100B000000000000000A /* SettingsView.swift */,
 				BFAB1012000000000000000A /* PDFImportView.swift */,
+				BFAB1013000000000000000A /* MailComposer.swift */,
+				BFAB1014000000000000000A /* ShareSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -215,6 +221,8 @@
 				BFAB000F000000000000000A /* LocationManager.swift in Sources */,
 				BFAB0010000000000000000A /* PDFFieldExtractor.swift in Sources */,
 				BFAB0011000000000000000A /* PDFImportView.swift in Sources */,
+				BFAB0012000000000000000A /* MailComposer.swift in Sources */,
+				BFAB0013000000000000000A /* ShareSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
