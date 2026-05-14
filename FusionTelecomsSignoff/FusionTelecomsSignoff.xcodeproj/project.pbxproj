@@ -1,0 +1,431 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BFAB0001000000000000000A /* FusionTelecomsSignoffApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */; };
+		BFAB0002000000000000000A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1002000000000000000A /* ContentView.swift */; };
+		BFAB0003000000000000000A /* WorkOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1003000000000000000A /* WorkOrder.swift */; };
+		BFAB0004000000000000000A /* WorkOrderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1004000000000000000A /* WorkOrderStore.swift */; };
+		BFAB0005000000000000000A /* JobListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1005000000000000000A /* JobListView.swift */; };
+		BFAB0006000000000000000A /* NewJobView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1006000000000000000A /* NewJobView.swift */; };
+		BFAB0007000000000000000A /* SignaturePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1007000000000000000A /* SignaturePad.swift */; };
+		BFAB0008000000000000000A /* SignatureCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1008000000000000000A /* SignatureCaptureView.swift */; };
+		BFAB0009000000000000000A /* CompletedJobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1009000000000000000A /* CompletedJobDetailView.swift */; };
+		BFAB000A000000000000000A /* PDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB100A000000000000000A /* PDFGenerator.swift */; };
+		BFAB000B000000000000000A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB100B000000000000000A /* SettingsView.swift */; };
+		BFAB000C000000000000000A /* JobSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB100C000000000000000A /* JobSummaryCard.swift */; };
+		BFAB000D000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFAB100D000000000000000A /* Assets.xcassets */; };
+		BFAB000E000000000000000A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFAB100E000000000000000A /* Preview Assets.xcassets */; };
+		BFAB000F000000000000000A /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1010000000000000000A /* LocationManager.swift */; };
+		BFAB0010000000000000000A /* PDFFieldExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1011000000000000000A /* PDFFieldExtractor.swift */; };
+		BFAB0011000000000000000A /* PDFImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1012000000000000000A /* PDFImportView.swift */; };
+		BFAB0012000000000000000A /* MailComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1013000000000000000A /* MailComposer.swift */; };
+		BFAB0013000000000000000A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1014000000000000000A /* ShareSheet.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FusionTelecomsSignoffApp.swift; sourceTree = "<group>"; };
+		BFAB1002000000000000000A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BFAB1003000000000000000A /* WorkOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrder.swift; sourceTree = "<group>"; };
+		BFAB1004000000000000000A /* WorkOrderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrderStore.swift; sourceTree = "<group>"; };
+		BFAB1005000000000000000A /* JobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobListView.swift; sourceTree = "<group>"; };
+		BFAB1006000000000000000A /* NewJobView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewJobView.swift; sourceTree = "<group>"; };
+		BFAB1007000000000000000A /* SignaturePad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignaturePad.swift; sourceTree = "<group>"; };
+		BFAB1008000000000000000A /* SignatureCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignatureCaptureView.swift; sourceTree = "<group>"; };
+		BFAB1009000000000000000A /* CompletedJobDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedJobDetailView.swift; sourceTree = "<group>"; };
+		BFAB100A000000000000000A /* PDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGenerator.swift; sourceTree = "<group>"; };
+		BFAB100B000000000000000A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		BFAB100C000000000000000A /* JobSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobSummaryCard.swift; sourceTree = "<group>"; };
+		BFAB100D000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BFAB100E000000000000000A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		BFAB100F000000000000000A /* FusionTelecomsSignoff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FusionTelecomsSignoff.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BFAB1010000000000000000A /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		BFAB1011000000000000000A /* PDFFieldExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFFieldExtractor.swift; sourceTree = "<group>"; };
+		BFAB1012000000000000000A /* PDFImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImportView.swift; sourceTree = "<group>"; };
+		BFAB1013000000000000000A /* MailComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailComposer.swift; sourceTree = "<group>"; };
+		BFAB1014000000000000000A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BFAB3001000000000000000A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BFAB2001000000000000000A = {
+			isa = PBXGroup;
+			children = (
+				BFAB2002000000000000000A /* FusionTelecomsSignoff */,
+				BFAB2008000000000000000A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BFAB2002000000000000000A /* FusionTelecomsSignoff */ = {
+			isa = PBXGroup;
+			children = (
+				BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */,
+				BFAB1002000000000000000A /* ContentView.swift */,
+				BFAB2003000000000000000A /* Models */,
+				BFAB2004000000000000000A /* Views */,
+				BFAB2005000000000000000A /* Services */,
+				BFAB100D000000000000000A /* Assets.xcassets */,
+				BFAB2007000000000000000A /* Preview Content */,
+			);
+			path = FusionTelecomsSignoff;
+			sourceTree = "<group>";
+		};
+		BFAB2003000000000000000A /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				BFAB1003000000000000000A /* WorkOrder.swift */,
+				BFAB1004000000000000000A /* WorkOrderStore.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		BFAB2004000000000000000A /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				BFAB1005000000000000000A /* JobListView.swift */,
+				BFAB1006000000000000000A /* NewJobView.swift */,
+				BFAB100C000000000000000A /* JobSummaryCard.swift */,
+				BFAB1007000000000000000A /* SignaturePad.swift */,
+				BFAB1008000000000000000A /* SignatureCaptureView.swift */,
+				BFAB1009000000000000000A /* CompletedJobDetailView.swift */,
+				BFAB100B000000000000000A /* SettingsView.swift */,
+				BFAB1012000000000000000A /* PDFImportView.swift */,
+				BFAB1013000000000000000A /* MailComposer.swift */,
+				BFAB1014000000000000000A /* ShareSheet.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		BFAB2005000000000000000A /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				BFAB100A000000000000000A /* PDFGenerator.swift */,
+				BFAB1010000000000000000A /* LocationManager.swift */,
+				BFAB1011000000000000000A /* PDFFieldExtractor.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		BFAB2007000000000000000A /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				BFAB100E000000000000000A /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		BFAB2008000000000000000A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BFAB100F000000000000000A /* FusionTelecomsSignoff.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BFAB4001000000000000000A /* FusionTelecomsSignoff */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BFAB7002000000000000000A /* Build configuration list for PBXNativeTarget "FusionTelecomsSignoff" */;
+			buildPhases = (
+				BFAB3003000000000000000A /* Sources */,
+				BFAB3001000000000000000A /* Frameworks */,
+				BFAB3002000000000000000A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FusionTelecomsSignoff;
+			productName = FusionTelecomsSignoff;
+			productReference = BFAB100F000000000000000A /* FusionTelecomsSignoff.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BFAB5001000000000000000A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					BFAB4001000000000000000A = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = BFAB7001000000000000000A /* Build configuration list for PBXProject "FusionTelecomsSignoff" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BFAB2001000000000000000A;
+			productRefGroup = BFAB2008000000000000000A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BFAB4001000000000000000A /* FusionTelecomsSignoff */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BFAB3002000000000000000A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFAB000E000000000000000A /* Preview Assets.xcassets in Resources */,
+				BFAB000D000000000000000A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BFAB3003000000000000000A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFAB0001000000000000000A /* FusionTelecomsSignoffApp.swift in Sources */,
+				BFAB0002000000000000000A /* ContentView.swift in Sources */,
+				BFAB0003000000000000000A /* WorkOrder.swift in Sources */,
+				BFAB0004000000000000000A /* WorkOrderStore.swift in Sources */,
+				BFAB0005000000000000000A /* JobListView.swift in Sources */,
+				BFAB0006000000000000000A /* NewJobView.swift in Sources */,
+				BFAB0007000000000000000A /* SignaturePad.swift in Sources */,
+				BFAB0008000000000000000A /* SignatureCaptureView.swift in Sources */,
+				BFAB0009000000000000000A /* CompletedJobDetailView.swift in Sources */,
+				BFAB000A000000000000000A /* PDFGenerator.swift in Sources */,
+				BFAB000B000000000000000A /* SettingsView.swift in Sources */,
+				BFAB000C000000000000000A /* JobSummaryCard.swift in Sources */,
+				BFAB000F000000000000000A /* LocationManager.swift in Sources */,
+				BFAB0010000000000000000A /* PDFFieldExtractor.swift in Sources */,
+				BFAB0011000000000000000A /* PDFImportView.swift in Sources */,
+				BFAB0012000000000000000A /* MailComposer.swift in Sources */,
+				BFAB0013000000000000000A /* ShareSheet.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BFAB6001000000000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BFAB6002000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BFAB6003000000000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FusionTelecomsSignoff/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Work Sign-Off";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your current location is used to automatically fill in the site address on work orders.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fusiontelecom.worksignoff;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BFAB6004000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FusionTelecomsSignoff/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Work Sign-Off";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your current location is used to automatically fill in the site address on work orders.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fusiontelecom.worksignoff;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BFAB7001000000000000000A /* Build configuration list for PBXProject "FusionTelecomsSignoff" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BFAB6001000000000000000A /* Debug */,
+				BFAB6002000000000000000A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BFAB7002000000000000000A /* Build configuration list for PBXNativeTarget "FusionTelecomsSignoff" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BFAB6003000000000000000A /* Debug */,
+				BFAB6004000000000000000A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BFAB5001000000000000000A /* Project object */;
+}
