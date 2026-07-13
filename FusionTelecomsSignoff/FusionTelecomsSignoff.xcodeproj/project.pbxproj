@@ -26,6 +26,7 @@
 		BFAB0011000000000000000A /* PDFImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1012000000000000000A /* PDFImportView.swift */; };
 		BFAB0012000000000000000A /* MailComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1013000000000000000A /* MailComposer.swift */; };
 		BFAB0013000000000000000A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1014000000000000000A /* ShareSheet.swift */; };
+		BFAB0014000000000000000A /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1016000000000000000A /* DeepLinkHandler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,8 @@
 		BFAB1012000000000000000A /* PDFImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImportView.swift; sourceTree = "<group>"; };
 		BFAB1013000000000000000A /* MailComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailComposer.swift; sourceTree = "<group>"; };
 		BFAB1014000000000000000A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		BFAB1015000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BFAB1016000000000000000A /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +78,7 @@
 			children = (
 				BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */,
 				BFAB1002000000000000000A /* ContentView.swift */,
+				BFAB1015000000000000000A /* Info.plist */,
 				BFAB2003000000000000000A /* Models */,
 				BFAB2004000000000000000A /* Views */,
 				BFAB2005000000000000000A /* Services */,
@@ -116,6 +120,7 @@
 				BFAB100A000000000000000A /* PDFGenerator.swift */,
 				BFAB1010000000000000000A /* LocationManager.swift */,
 				BFAB1011000000000000000A /* PDFFieldExtractor.swift */,
+				BFAB1016000000000000000A /* DeepLinkHandler.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -223,6 +228,7 @@
 				BFAB0011000000000000000A /* PDFImportView.swift in Sources */,
 				BFAB0012000000000000000A /* MailComposer.swift in Sources */,
 				BFAB0013000000000000000A /* ShareSheet.swift in Sources */,
+				BFAB0014000000000000000A /* DeepLinkHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -355,13 +361,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FusionTelecomsSignoff/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Work Sign-Off";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your current location is used to automatically fill in the site address on work orders.";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "FusionTelecomsSignoff/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -384,13 +385,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FusionTelecomsSignoff/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Work Sign-Off";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your current location is used to automatically fill in the site address on work orders.";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "FusionTelecomsSignoff/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

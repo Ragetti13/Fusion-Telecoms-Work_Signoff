@@ -34,8 +34,11 @@ struct JobListView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingNewJob) {
-                NewJobView()
+            .sheet(isPresented: $showingNewJob, onDismiss: { store.pendingPrefill = nil }) {
+                NewJobView(prefill: store.pendingPrefill)
+            }
+            .onChange(of: store.pendingPrefill != nil) { hasPrefill in
+                if hasPrefill { showingNewJob = true }
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()

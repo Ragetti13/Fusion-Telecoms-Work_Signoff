@@ -4,6 +4,7 @@ import Combine
 class WorkOrderStore: ObservableObject {
     @Published var workOrders: [WorkOrder] = []
     @Published var technicianName: String = ""
+    @Published var pendingPrefill: JobPrefill?
 
     private let ordersKey = "WorkOrders"
     private let techKey = "TechnicianName"

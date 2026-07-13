@@ -8,6 +8,11 @@ struct FusionTelecomsSignoffApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
+                .onOpenURL { url in
+                    if let prefill = DeepLinkHandler.parse(url: url) {
+                        store.pendingPrefill = prefill
+                    }
+                }
         }
     }
 }
