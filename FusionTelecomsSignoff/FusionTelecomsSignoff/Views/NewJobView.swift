@@ -4,15 +4,26 @@ import UIKit
 struct NewJobView: View {
     @EnvironmentObject var store: WorkOrderStore
     @Environment(\.dismiss) var dismiss
-    @StateObject private var locationManager = LocationManager()
+    @StateObject private var locationManager: LocationManager
 
-    @State private var jobReference = ""
-    @State private var customerName = ""
-    @State private var customerAddress = ""
-    @State private var customerEmail = ""
-    @State private var workDescription = ""
-    @State private var completedDate = Date()
-    @State private var showingPDFImport = false
+    @State private var jobReference: String
+    @State private var customerName: String
+    @State private var customerAddress: String
+    @State private var customerEmail: String
+    @State private var workDescription: String
+    @State private var completedDate: Date
+    @State private var showingPDFImport: Bool
+
+    init(prefill: JobPrefill? = nil) {
+        _locationManager = StateObject(wrappedValue: LocationManager())
+        _jobReference    = State(initialValue: prefill?.jobReference    ?? "")
+        _customerName    = State(initialValue: prefill?.customerName    ?? "")
+        _customerAddress = State(initialValue: prefill?.customerAddress ?? "")
+        _customerEmail   = State(initialValue: prefill?.customerEmail   ?? "")
+        _workDescription = State(initialValue: prefill?.workDescription ?? "")
+        _completedDate   = State(initialValue: Date())
+        _showingPDFImport = State(initialValue: false)
+    }
 
     private var isValid: Bool {
         !customerName.trimmingCharacters(in: .whitespaces).isEmpty &&

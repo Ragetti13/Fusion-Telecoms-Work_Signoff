@@ -16,6 +16,19 @@ struct SettingsView: View {
                 } footer: {
                     Text("This name appears on work orders and exported PDFs.")
                 }
+
+                Section {
+                    VStack(spacing: 6) {
+                        Text("© \(Calendar.current.component(.year, from: Date())) Fusion Telecoms LTD")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Link("fusion-telecoms.com", destination: URL(string: "https://fusion-telecoms.com")!)
+                            .font(.footnote)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+                }
+                .listRowBackground(Color.clear)
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
