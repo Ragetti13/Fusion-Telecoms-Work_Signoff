@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct FusionTelecomsSignoffApp: App {
     @StateObject private var store = WorkOrderStore()
+    @Environment(\.scenePhase) var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -13,6 +14,11 @@ struct FusionTelecomsSignoffApp: App {
                         store.pendingPrefill = prefill
                     }
                 }
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                Task { await store.syncRemoteJobs() }
+            }
         }
     }
 }
