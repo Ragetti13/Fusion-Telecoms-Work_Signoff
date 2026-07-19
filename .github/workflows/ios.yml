@@ -32,4 +32,19 @@ jobs:
           if [ $scheme = default ]; then scheme=$(cat default); fi
           if [ "`ls -A | grep -i \\.xcworkspace\$`" ]; then filetype_parameter="workspace" && file_to_build="`ls -A | grep -i \\.xcworkspace\$`"; else filetype_parameter="project" && file_to_build="`ls -A | grep -i \\.xcodeproj\$`"; fi
           file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
-          xcodebuild build -scheme "$scheme" -"$filetype_parameter" "$file_to_build" -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO
+          xcodebuild build -scheme "$scheme" -"$filetype_parameter" "$file_to_build" -destination "generic/platform=iOS Simulator" -derivedDataPath build CODE_SIGNING_ALLOWED=NO
+
+      - name: Verify built app has a bundle identifier
+        run: |
+          # `xcodebuild build` links the app but never installs it, so a missing
+          # CFBundleIdentifier only surfaces at install/run time. Assert it here
+          # so a broken Info.plist can't merge green again.
+          app=$(find build/Build/Products -maxdepth 2 -name "*.app" | head -1)
+          if [ -z "$app" ]; then echo "No .app produced by build"; exit 1; fi
+          bid=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$app/Info.plist" 2>/dev/null || true)
+          echo "Built app: $app"
+          echo "CFBundleIdentifier: '$bid'"
+          if [ -z "$bid" ]; then
+            echo "::error::Built app is missing CFBundleIdentifier — it would fail to install on a device/simulator."
+            exit 1
+          fi
