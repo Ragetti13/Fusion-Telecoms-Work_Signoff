@@ -27,6 +27,7 @@
 		BFAB0012000000000000000A /* MailComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1013000000000000000A /* MailComposer.swift */; };
 		BFAB0013000000000000000A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1014000000000000000A /* ShareSheet.swift */; };
 		BFAB0014000000000000000A /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1016000000000000000A /* DeepLinkHandler.swift */; };
+		BFAB0015000000000000000A /* SignoffJobsAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1017000000000000000A /* SignoffJobsAPI.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +53,7 @@
 		BFAB1014000000000000000A /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		BFAB1015000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BFAB1016000000000000000A /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
+		BFAB1017000000000000000A /* SignoffJobsAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignoffJobsAPI.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +123,7 @@
 				BFAB1010000000000000000A /* LocationManager.swift */,
 				BFAB1011000000000000000A /* PDFFieldExtractor.swift */,
 				BFAB1016000000000000000A /* DeepLinkHandler.swift */,
+				BFAB1017000000000000000A /* SignoffJobsAPI.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -229,6 +232,7 @@
 				BFAB0012000000000000000A /* MailComposer.swift in Sources */,
 				BFAB0013000000000000000A /* ShareSheet.swift in Sources */,
 				BFAB0014000000000000000A /* DeepLinkHandler.swift in Sources */,
+				BFAB0015000000000000000A /* SignoffJobsAPI.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
