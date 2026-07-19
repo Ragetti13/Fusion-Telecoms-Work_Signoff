@@ -81,18 +81,22 @@ struct PDFImportView: View {
         Task.detached(priority: .userInitiated) {
             let accessing = url.startAccessingSecurityScopedResource()
             defer { if accessing { url.stopAccessingSecurityScopedResource() } }
-            var fullText = ""
+            var text = ""
             if let pdf = PDFDocument(url: url) {
                 for i in 0..<pdf.pageCount {
-                    fullText += (pdf.page(at: i)?.string ?? "") + "\n"
+                    text += (pdf.page(at: i)?.string ?? "") + "\n"
                 }
             }
-            let fields = PDFFieldExtractor.extract(from: fullText)
+            // Snapshot into immutable values so the MainActor closure below
+            // captures only constants, not the mutable `text` var (a Swift 6
+            // concurrency error).
+            let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let fields = PDFFieldExtractor.extract(from: text)
             await MainActor.run {
-                if fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    readError = "No readable text found. The PDF may be a scanned image."
-                } else {
+                if hasText {
                     extractedFields = fields
+                } else {
+                    readError = "No readable text found. The PDF may be a scanned image."
                 }
                 isProcessing = false
             }
