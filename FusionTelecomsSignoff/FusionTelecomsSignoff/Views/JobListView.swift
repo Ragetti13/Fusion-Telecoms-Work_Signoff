@@ -28,6 +28,18 @@ struct JobListView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        Task { await store.refreshProvisioningJobs() }
+                    } label: {
+                        if store.isSyncing {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                    .disabled(store.isSyncing)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
                         showingNewJob = true
                     } label: {
                         Image(systemName: "plus")
@@ -42,6 +54,17 @@ struct JobListView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
+            }
+            .alert(
+                "Couldn't refresh",
+                isPresented: Binding(
+                    get: { store.refreshErrorMessage != nil },
+                    set: { if !$0 { store.refreshErrorMessage = nil } }
+                )
+            ) {
+                Button("OK", role: .cancel) { store.refreshErrorMessage = nil }
+            } message: {
+                Text(store.refreshErrorMessage ?? "")
             }
         }
     }
@@ -76,6 +99,7 @@ struct JobListView: View {
                 }
             }
         }
+        .refreshable { await store.refreshProvisioningJobs() }
     }
 
     private var emptyState: some View {

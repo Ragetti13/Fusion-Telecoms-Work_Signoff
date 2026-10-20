@@ -8,6 +8,8 @@ class WorkOrderStore: ObservableObject {
     @Published var signoffAPIURL: String = ""
     @Published var signoffAPIKey: String = ""
     @Published var isSyncing: Bool = false
+    // Set when a manual Provisioning refresh fails, for a one-off alert.
+    @Published var refreshErrorMessage: String?
 
     private let ordersKey = "WorkOrders"
     private let techKey = "TechnicianName"
@@ -53,16 +55,42 @@ class WorkOrderStore: ObservableObject {
         save()
     }
 
+    /// Background sync of manually-queued jobs (Send to Sign-off). Runs on
+    /// foreground; silent on failure.
     @MainActor
     func syncRemoteJobs() async {
         guard !signoffAPIURL.isEmpty, !signoffAPIKey.isEmpty, !isSyncing else { return }
         isSyncing = true
         defer { isSyncing = false }
-
         guard let jobs = try? await SignoffJobsAPI.fetchPending(
             baseURL: signoffAPIURL, apiKey: signoffAPIKey
         ) else { return }
+        await mergeAndClaim(jobs)
+    }
 
+    /// Manual Refresh: pull jobs currently in the CRM's Provisioning stage.
+    /// Surfaces an error message so the technician knows if it couldn't run.
+    @MainActor
+    func refreshProvisioningJobs() async {
+        guard !signoffAPIURL.isEmpty, !signoffAPIKey.isEmpty else {
+            refreshErrorMessage = "Set your server URL and API key in Settings first."
+            return
+        }
+        guard !isSyncing else { return }
+        isSyncing = true
+        defer { isSyncing = false }
+        do {
+            let jobs = try await SignoffJobsAPI.fetchProvisioning(baseURL: signoffAPIURL, apiKey: signoffAPIKey)
+            await mergeAndClaim(jobs)
+        } catch {
+            refreshErrorMessage = error.localizedDescription
+        }
+    }
+
+    /// Insert any jobs not already present (matched by job reference), stamping
+    /// the remote job id, and claim each so it isn't re-delivered.
+    @MainActor
+    private func mergeAndClaim(_ jobs: [RemoteJob]) async {
         var didAdd = false
         for job in jobs {
             guard !workOrders.contains(where: { $0.jobReference == job.jobReference }) else { continue }
@@ -80,7 +108,6 @@ class WorkOrderStore: ObservableObject {
             didAdd = true
             try? await SignoffJobsAPI.claimJob(id: job.id, baseURL: signoffAPIURL, apiKey: signoffAPIKey)
         }
-
         if didAdd { save() }
     }
 

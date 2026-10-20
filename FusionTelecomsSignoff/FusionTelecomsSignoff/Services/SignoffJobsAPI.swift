@@ -11,6 +11,16 @@ struct RemoteJob: Codable, Identifiable {
     let status: String
 }
 
+enum SignoffError: LocalizedError {
+    case crmNotConfigured
+    var errorDescription: String? {
+        switch self {
+        case .crmNotConfigured:
+            return "The CRM integration isn't set up on the server yet, so there are no Provisioning jobs to pull."
+        }
+    }
+}
+
 enum InstallType: String, CaseIterable, Identifiable {
     case inPerson = "In-person"
     case remote = "Remote"
@@ -27,6 +37,24 @@ enum SignoffJobsAPI {
         request.setValue(apiKey, forHTTPHeaderField: "X-Signoff-Key")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode([RemoteJob].self, from: data)
+    }
+
+    /// Fetch jobs currently in the CRM's Provisioning stage (the server matches
+    /// each to its Quote Builder order and ensures a sign-off job exists).
+    static func fetchProvisioning(baseURL: String, apiKey: String) async throws -> [RemoteJob] {
+        guard let url = URL(string: "\(baseURL.trimmingCharacters(in: .init(charactersIn: "/")))/api/signoff-jobs/provisioning") else {
+            throw URLError(.badURL)
+        }
+        var request = URLRequest(url: url, timeoutInterval: 30)
+        request.setValue(apiKey, forHTTPHeaderField: "X-Signoff-Key")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        guard http.statusCode == 200 else {
+            // 503 = CRM not configured on the server; surface a clear message.
+            if http.statusCode == 503 { throw SignoffError.crmNotConfigured }
             throw URLError(.badServerResponse)
         }
         return try JSONDecoder().decode([RemoteJob].self, from: data)
