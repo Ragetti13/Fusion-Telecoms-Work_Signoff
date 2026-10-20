@@ -15,6 +15,12 @@ struct SignatureCaptureView: View {
     @State private var padID = UUID()
     @State private var showingConfirm = false
 
+    // "Customer not available to sign" flow
+    @State private var showingUnavailable = false
+    @State private var unavailableGoLiveDate = Date()
+    @State private var unavailableInstallType: InstallType = .remote
+    @State private var deliverAfterUnavailable = false
+
     // Post sign-off email / share state
     @State private var signedOrder: WorkOrder?
     @State private var pdfURL: URL?
@@ -54,6 +60,19 @@ struct SignatureCaptureView: View {
                         .buttonStyle(.borderedProminent)
                         .disabled(!hasSignature)
                     }
+
+                    Divider()
+
+                    Button {
+                        unavailableGoLiveDate = Date()
+                        unavailableInstallType = .remote
+                        showingUnavailable = true
+                    } label: {
+                        Label("Customer not available to sign", systemImage: "person.fill.questionmark")
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
                 }
                 .padding()
                 .background(Color(.systemGroupedBackground))
@@ -87,6 +106,36 @@ struct SignatureCaptureView: View {
                 ShareSheet(items: [url])
             }
         }
+        // Customer-not-available: technician records the go-live date + install type
+        .sheet(isPresented: $showingUnavailable, onDismiss: deliverCompletionIfNeeded) {
+            NavigationStack {
+                Form {
+                    Section {
+                        DatePicker("Go-Live Date", selection: $unavailableGoLiveDate, displayedComponents: .date)
+                        Picker("Install Type", selection: $unavailableInstallType) {
+                            ForEach(InstallType.allCases) { type in
+                                Text(type.label).tag(type)
+                            }
+                        }
+                    } header: {
+                        Text("Record Completion")
+                    } footer: {
+                        Text("Use this when the customer isn't present to sign. The job is recorded as completed and the go-live date you enter is sent to the CRM.")
+                    }
+                    Section {
+                        Button("Record Completion") { completeWithoutSignature() }
+                            .fontWeight(.semibold)
+                    }
+                }
+                .navigationTitle("No Signature")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Cancel") { showingUnavailable = false }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Actions
@@ -100,6 +149,17 @@ struct SignatureCaptureView: View {
         store.update(updated)
         signedOrder = updated
 
+        // Customer signed on-site today → report completion so the CRM
+        // opportunity is marked live (in-person, go-live = today).
+        Task { [updated] in
+            await store.reportCompletion(
+                for: updated,
+                goLiveDate: Date(),
+                installType: .inPerson,
+                signedByCustomer: true
+            )
+        }
+
         // Write PDF to a temp file so it can be attached or shared
         let pdfData = PDFGenerator.generate(from: updated)
         let filename = "WorkOrder-\(updated.displayName).pdf"
@@ -112,6 +172,48 @@ struct SignatureCaptureView: View {
         } else {
             // Device has no mail accounts configured — share sheet lets them
             // use AirDrop, WhatsApp, save to Files, etc.
+            showingShareSheet = true
+        }
+    }
+
+    // Complete the job without a customer signature: the technician records the
+    // go-live date and install type, the job is marked complete, and the CRM
+    // opportunity is moved live against the supplied date (signedByCustomer=false).
+    private func completeWithoutSignature() {
+        var updated = workOrder
+        updated.isSigned = true
+        store.update(updated)
+        signedOrder = updated
+
+        let goLive = unavailableGoLiveDate
+        let installType = unavailableInstallType
+        Task { [updated] in
+            await store.reportCompletion(
+                for: updated,
+                goLiveDate: goLive,
+                installType: installType,
+                signedByCustomer: false
+            )
+        }
+
+        let pdfData = PDFGenerator.generate(from: updated)
+        let filename = "WorkOrder-\(updated.displayName).pdf"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        try? pdfData.write(to: url)
+        pdfURL = url
+
+        // Dismiss this sheet first; present mail/share from its onDismiss so
+        // two sheets never fight to present at once.
+        deliverAfterUnavailable = true
+        showingUnavailable = false
+    }
+
+    private func deliverCompletionIfNeeded() {
+        guard deliverAfterUnavailable else { return }
+        deliverAfterUnavailable = false
+        if MFMailComposeViewController.canSendMail() {
+            showingMailComposer = true
+        } else {
             showingShareSheet = true
         }
     }

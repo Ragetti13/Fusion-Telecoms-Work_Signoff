@@ -12,6 +12,10 @@ struct WorkOrder: Identifiable, Codable {
     var technicianName: String
     var signatureData: Data?
     var isSigned: Bool
+    // signoff_jobs.id for a job pulled from Quote Builder; lets the app report
+    // completion back so the linked CRM opportunity can be marked live. nil for
+    // jobs created locally (manually or via deep link).
+    var remoteJobId: Int?
 
     init(
         id: UUID = UUID(),
@@ -23,7 +27,8 @@ struct WorkOrder: Identifiable, Codable {
         completedDate: Date = Date(),
         technicianName: String = "",
         signatureData: Data? = nil,
-        isSigned: Bool = false
+        isSigned: Bool = false,
+        remoteJobId: Int? = nil
     ) {
         self.id = id
         self.jobReference = jobReference
@@ -35,6 +40,7 @@ struct WorkOrder: Identifiable, Codable {
         self.technicianName = technicianName
         self.signatureData = signatureData
         self.isSigned = isSigned
+        self.remoteJobId = remoteJobId
     }
 
     var signatureImage: UIImage? {
@@ -50,6 +56,7 @@ struct WorkOrder: Identifiable, Codable {
     enum CodingKeys: String, CodingKey {
         case id, jobReference, customerName, customerAddress, customerEmail
         case workDescription, completedDate, technicianName, signatureData, isSigned
+        case remoteJobId
     }
 
     init(from decoder: Decoder) throws {
@@ -64,5 +71,6 @@ struct WorkOrder: Identifiable, Codable {
         technicianName = try  c.decode(String.self, forKey: .technicianName)
         signatureData  = try? c.decode(Data.self,   forKey: .signatureData)
         isSigned       = try  c.decode(Bool.self,   forKey: .isSigned)
+        remoteJobId    = try? c.decode(Int.self,    forKey: .remoteJobId)
     }
 }
