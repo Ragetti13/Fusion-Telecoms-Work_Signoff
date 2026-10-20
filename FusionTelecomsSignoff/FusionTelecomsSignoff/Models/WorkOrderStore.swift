@@ -73,7 +73,8 @@ class WorkOrderStore: ObservableObject {
                 customerEmail: job.customerEmail ?? "",
                 workDescription: job.workDescription ?? "",
                 completedDate: Date(),
-                technicianName: technicianName
+                technicianName: technicianName,
+                remoteJobId: job.id
             )
             workOrders.insert(workOrder, at: 0)
             didAdd = true
@@ -81,5 +82,27 @@ class WorkOrderStore: ObservableObject {
         }
 
         if didAdd { save() }
+    }
+
+    /// Report a Quote Builder job as signed off so the server can mark its CRM
+    /// opportunity live. Best-effort: does nothing for locally-created jobs (no
+    /// remoteJobId) or when sync isn't configured, and never throws.
+    @MainActor
+    func reportCompletion(
+        for workOrder: WorkOrder,
+        goLiveDate: Date,
+        installType: InstallType,
+        signedByCustomer: Bool
+    ) async {
+        guard let jobId = workOrder.remoteJobId,
+              !signoffAPIURL.isEmpty, !signoffAPIKey.isEmpty else { return }
+        try? await SignoffJobsAPI.completeJob(
+            id: jobId,
+            goLiveDate: SignoffJobsAPI.isoDay(goLiveDate),
+            installType: installType,
+            signedByCustomer: signedByCustomer,
+            baseURL: signoffAPIURL,
+            apiKey: signoffAPIKey
+        )
     }
 }
