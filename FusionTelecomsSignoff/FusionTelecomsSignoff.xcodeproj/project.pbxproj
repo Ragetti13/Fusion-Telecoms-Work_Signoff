@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		BFAB0001000000000000000A /* FusionTelecomsSignoffApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */; };
 		BFAB0002000000000000000A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1002000000000000000A /* ContentView.swift */; };
+		BFAB0016000000000000000A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1018000000000000000A /* Theme.swift */; };
 		BFAB0003000000000000000A /* WorkOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1003000000000000000A /* WorkOrder.swift */; };
 		BFAB0004000000000000000A /* WorkOrderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1004000000000000000A /* WorkOrderStore.swift */; };
 		BFAB0005000000000000000A /* JobListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1005000000000000000A /* JobListView.swift */; };
@@ -33,6 +34,7 @@
 /* Begin PBXFileReference section */
 		BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FusionTelecomsSignoffApp.swift; sourceTree = "<group>"; };
 		BFAB1002000000000000000A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BFAB1018000000000000000A /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		BFAB1003000000000000000A /* WorkOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrder.swift; sourceTree = "<group>"; };
 		BFAB1004000000000000000A /* WorkOrderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrderStore.swift; sourceTree = "<group>"; };
 		BFAB1005000000000000000A /* JobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobListView.swift; sourceTree = "<group>"; };
@@ -80,6 +82,7 @@
 			children = (
 				BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */,
 				BFAB1002000000000000000A /* ContentView.swift */,
+				BFAB1018000000000000000A /* Theme.swift */,
 				BFAB1015000000000000000A /* Info.plist */,
 				BFAB2003000000000000000A /* Models */,
 				BFAB2004000000000000000A /* Views */,
@@ -216,6 +219,7 @@
 			files = (
 				BFAB0001000000000000000A /* FusionTelecomsSignoffApp.swift in Sources */,
 				BFAB0002000000000000000A /* ContentView.swift in Sources */,
+				BFAB0016000000000000000A /* Theme.swift in Sources */,
 				BFAB0003000000000000000A /* WorkOrder.swift in Sources */,
 				BFAB0004000000000000000A /* WorkOrderStore.swift in Sources */,
 				BFAB0005000000000000000A /* JobListView.swift in Sources */,
