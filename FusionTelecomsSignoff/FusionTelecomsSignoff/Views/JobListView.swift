@@ -8,63 +8,62 @@ struct JobListView: View {
     private var pendingJobs: [WorkOrder] { store.workOrders.filter { !$0.isSigned } }
     private var completedJobs: [WorkOrder] { store.workOrders.filter { $0.isSigned } }
 
+    // Split into typed sub-expressions (toolbar, binding, content) so the
+    // SwiftUI type-checker doesn't have to infer one large body expression.
     var body: some View {
         NavigationStack {
-            Group {
-                if store.workOrders.isEmpty {
-                    emptyState
-                } else {
-                    jobList
+            content
+                .navigationTitle("Work Sign-Off")
+                .toolbar { toolbarContent }
+                .sheet(isPresented: $showingNewJob, onDismiss: { store.pendingPrefill = nil }) {
+                    NewJobView(prefill: store.pendingPrefill)
                 }
-            }
-            .navigationTitle("Work Sign-Off")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Image(systemName: "person.circle")
-                    }
+                .onChange(of: store.pendingPrefill != nil) { hasPrefill in
+                    if hasPrefill { showingNewJob = true }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task { await store.refreshProvisioningJobs() }
-                    } label: {
-                        if store.isSyncing {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                    }
-                    .disabled(store.isSyncing)
+                .sheet(isPresented: $showingSettings) {
+                    SettingsView()
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingNewJob = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
+                .alert("Couldn't refresh", isPresented: showRefreshError) {
+                    Button("OK", role: .cancel) { store.refreshErrorMessage = nil }
+                } message: {
+                    Text(store.refreshErrorMessage ?? "")
                 }
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if store.workOrders.isEmpty {
+            emptyState
+        } else {
+            jobList
+        }
+    }
+
+    private var showRefreshError: Binding<Bool> {
+        Binding(
+            get: { store.refreshErrorMessage != nil },
+            set: { if !$0 { store.refreshErrorMessage = nil } }
+        )
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button { showingSettings = true } label: {
+                Image(systemName: "person.circle")
             }
-            .sheet(isPresented: $showingNewJob, onDismiss: { store.pendingPrefill = nil }) {
-                NewJobView(prefill: store.pendingPrefill)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button { Task { await store.refreshProvisioningJobs() } } label: {
+                Image(systemName: "arrow.clockwise")
             }
-            .onChange(of: store.pendingPrefill != nil) { hasPrefill in
-                if hasPrefill { showingNewJob = true }
-            }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView()
-            }
-            .alert(
-                "Couldn't refresh",
-                isPresented: Binding(
-                    get: { store.refreshErrorMessage != nil },
-                    set: { if !$0 { store.refreshErrorMessage = nil } }
-                )
-            ) {
-                Button("OK", role: .cancel) { store.refreshErrorMessage = nil }
-            } message: {
-                Text(store.refreshErrorMessage ?? "")
+            .disabled(store.isSyncing)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button { showingNewJob = true } label: {
+                Image(systemName: "plus")
             }
         }
     }
