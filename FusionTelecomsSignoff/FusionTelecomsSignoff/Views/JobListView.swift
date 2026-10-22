@@ -13,8 +13,12 @@ struct JobListView: View {
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle("Work Sign-Off")
+                .navigationTitle("")
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent }
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbarBackground(Color.brandPink, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
                 .sheet(isPresented: $showingNewJob, onDismiss: { store.pendingPrefill = nil }) {
                     NewJobView(prefill: store.pendingPrefill)
                 }
@@ -51,19 +55,30 @@ struct JobListView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
+            // Left-aligned brand wordmark. (Readable placeholder for the
+            // landscape logo artwork — swap Text for Image once the asset lands.)
+            Text("Fusion Telecoms")
+                .font(.title3).fontWeight(.bold)
+                .foregroundStyle(.white)
+                .accessibilityAddTraits(.isHeader)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
             Button { showingSettings = true } label: {
                 Image(systemName: "person.circle")
+                    .foregroundStyle(.white)
             }
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button { Task { await store.refreshProvisioningJobs() } } label: {
                 Image(systemName: "arrow.clockwise")
+                    .foregroundStyle(.white)
             }
             .disabled(store.isSyncing)
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button { showingNewJob = true } label: {
                 Image(systemName: "plus")
+                    .foregroundStyle(.white)
             }
         }
     }
@@ -102,6 +117,7 @@ struct JobListView: View {
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .refreshable { await store.refreshProvisioningJobs() }
     }
 

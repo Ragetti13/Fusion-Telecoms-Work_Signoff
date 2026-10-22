@@ -14,23 +14,25 @@ struct PDFGenerator {
         let margin: CGFloat = 50
         var y: CGFloat = margin
 
-        // Header
-        let brand = NSAttributedString(string: "Fusion Telecoms", attributes: [
-            .font: UIFont.systemFont(ofSize: 26, weight: .bold),
-            .foregroundColor: UIColor(red: 0.0, green: 0.48, blue: 0.86, alpha: 1.0)
-        ])
-        brand.draw(at: CGPoint(x: margin, y: y))
-        y += 32
-
-        let subtitle = NSAttributedString(string: "Work Completion Certificate", attributes: [
-            .font: UIFont.systemFont(ofSize: 13),
+        // Header — Fusion logo + certificate title
+        let brandPink = UIColor(red: 0.929, green: 0.059, blue: 0.400, alpha: 1.0)
+        let logoSize: CGFloat = 58
+        if let logo = UIImage(named: "Logo") {
+            logo.draw(in: CGRect(x: margin, y: y, width: logoSize, height: logoSize))
+        }
+        let headX = margin + logoSize + 16
+        NSAttributedString(string: "Work Completion Certificate", attributes: [
+            .font: UIFont.systemFont(ofSize: 20, weight: .bold),
+            .foregroundColor: brandPink
+        ]).draw(at: CGPoint(x: headX, y: y + 8))
+        NSAttributedString(string: "Fusion Telecoms", attributes: [
+            .font: UIFont.systemFont(ofSize: 12),
             .foregroundColor: UIColor.darkGray
-        ])
-        subtitle.draw(at: CGPoint(x: margin, y: y))
-        y += 28
+        ]).draw(at: CGPoint(x: headX, y: y + 36))
+        y += logoSize + 14
 
-        // Rule
-        drawHRule(from: CGPoint(x: margin, y: y), to: CGPoint(x: page.width - margin, y: y), color: .systemGray4, width: 1)
+        // Brand rule
+        drawHRule(from: CGPoint(x: margin, y: y), to: CGPoint(x: page.width - margin, y: y), color: brandPink, width: 2)
         y += 22
 
         // Fields
