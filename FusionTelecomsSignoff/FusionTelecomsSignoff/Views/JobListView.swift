@@ -14,7 +14,11 @@ struct JobListView: View {
         NavigationStack {
             content
                 .navigationTitle("Work Sign-Off")
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent }
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbarBackground(Color.brandPink, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
                 .sheet(isPresented: $showingNewJob, onDismiss: { store.pendingPrefill = nil }) {
                     NewJobView(prefill: store.pendingPrefill)
                 }
@@ -53,17 +57,28 @@ struct JobListView: View {
         ToolbarItem(placement: .topBarLeading) {
             Button { showingSettings = true } label: {
                 Image(systemName: "person.circle")
+                    .foregroundStyle(.white)
             }
+        }
+        ToolbarItem(placement: .principal) {
+            Image("Logo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 30)
+                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .accessibilityLabel("Fusion Telecoms")
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button { Task { await store.refreshProvisioningJobs() } } label: {
                 Image(systemName: "arrow.clockwise")
+                    .foregroundStyle(.white)
             }
             .disabled(store.isSyncing)
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button { showingNewJob = true } label: {
                 Image(systemName: "plus")
+                    .foregroundStyle(.white)
             }
         }
     }
@@ -102,6 +117,7 @@ struct JobListView: View {
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .refreshable { await store.refreshProvisioningJobs() }
     }
 
