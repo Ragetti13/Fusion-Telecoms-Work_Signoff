@@ -71,7 +71,7 @@ struct JobListView: View {
     private var jobList: some View {
         List {
             if !pendingJobs.isEmpty {
-                Section("Awaiting Signature") {
+                Section {
                     ForEach(pendingJobs) { job in
                         NavigationLink(destination: SignatureCaptureView(workOrder: job)) {
                             JobRowView(workOrder: job)
@@ -81,11 +81,13 @@ struct JobListView: View {
                         let ids = offsets.map { pendingJobs[$0].id }
                         store.delete(ids: ids)
                     }
+                } header: {
+                    SectionHeader(title: "Awaiting Signature", tint: .brandPink)
                 }
             }
 
             if !completedJobs.isEmpty {
-                Section("Signed Off") {
+                Section {
                     ForEach(completedJobs) { job in
                         NavigationLink(destination: CompletedJobDetailView(workOrder: job)) {
                             JobRowView(workOrder: job)
@@ -95,6 +97,8 @@ struct JobListView: View {
                         let ids = offsets.map { completedJobs[$0].id }
                         store.delete(ids: ids)
                     }
+                } header: {
+                    SectionHeader(title: "Signed Off", tint: .green)
                 }
             }
         }
@@ -102,17 +106,18 @@ struct JobListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 22) {
             Spacer()
-            Image(systemName: "wrench.and.screwdriver")
-                .font(.system(size: 56))
-                .foregroundStyle(.secondary)
-            Text("No Jobs Yet")
-                .font(.title2)
-                .fontWeight(.semibold)
-            Text("Tap + to create your first work order")
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+            LogoBadge(size: 108, corner: 24)
+            VStack(spacing: 6) {
+                Text("Work Sign-Off")
+                    .font(.title2).fontWeight(.bold)
+                Text("Pull down to load jobs from Quote Builder, or tap + to create one.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 32)
             Spacer()
         }
         .frame(maxWidth: .infinity)
@@ -120,31 +125,55 @@ struct JobListView: View {
     }
 }
 
+struct SectionHeader: View {
+    let title: String
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 7) {
+            Circle().fill(tint).frame(width: 7, height: 7)
+            Text(title)
+                .font(.footnote).fontWeight(.semibold)
+                .foregroundStyle(tint)
+                .textCase(.uppercase)
+        }
+    }
+}
+
 struct JobRowView: View {
     let workOrder: WorkOrder
 
+    private var signed: Bool { workOrder.isSigned }
+    private var accent: Color { signed ? .green : .brandPink }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    .fill(accent.opacity(0.12))
+                    .frame(width: 44, height: 44)
+                Image(systemName: signed ? "checkmark.seal.fill" : "signature")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(accent)
+            }
+            VStack(alignment: .leading, spacing: 3) {
                 Text(workOrder.jobReference.isEmpty ? "No Reference" : workOrder.jobReference)
                     .font(.headline)
-                Spacer()
-                Image(systemName: workOrder.isSigned ? "checkmark.seal.fill" : "signature")
-                    .foregroundStyle(workOrder.isSigned ? .green : .orange)
-            }
-            Text(workOrder.customerName.isEmpty ? "Unknown Customer" : workOrder.customerName)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            if !workOrder.customerAddress.isEmpty {
-                Text(workOrder.customerAddress)
+                Text(workOrder.customerName.isEmpty ? "Unknown Customer" : workOrder.customerName)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                if !workOrder.customerAddress.isEmpty {
+                    Label(workOrder.customerAddress, systemImage: "mappin.and.ellipse")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+                Label(workOrder.completedDate.formatted(date: .abbreviated, time: .omitted),
+                      systemImage: "calendar")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
-                    .lineLimit(1)
             }
-            Text(workOrder.completedDate, style: .date)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 }

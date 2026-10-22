@@ -12,6 +12,20 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
+                    VStack(spacing: 10) {
+                        LogoBadge(size: 84, corner: 20)
+                        Text("Work Sign-Off")
+                            .font(.headline)
+                        Text("Fusion Telecoms")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                }
+                .listRowBackground(Color.clear)
+
+                Section {
                     TextField("Your Name / Technician Name", text: $name)
                 } header: {
                     Text("Your Details")
