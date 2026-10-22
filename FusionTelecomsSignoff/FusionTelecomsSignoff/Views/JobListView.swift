@@ -55,12 +55,14 @@ struct JobListView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
-            // Left-aligned brand wordmark. (Readable placeholder for the
-            // landscape logo artwork — swap Text for Image once the asset lands.)
-            Text("Fusion Telecoms")
-                .font(.title3).fontWeight(.bold)
-                .foregroundStyle(.white)
-                .accessibilityAddTraits(.isHeader)
+            // Left-aligned landscape logo. .original keeps the white wordmark and
+            // coloured atom dots (otherwise the bar would tint it flat/invisible).
+            Image("LogoLandscape")
+                .renderingMode(.original)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 26)
+                .accessibilityLabel("Fusion Telecoms")
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button { showingSettings = true } label: {
