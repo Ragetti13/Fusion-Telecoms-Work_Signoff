@@ -14,6 +14,7 @@ struct SignatureCaptureView: View {
     @State private var hasSignature = false
     @State private var padID = UUID()
     @State private var showingConfirm = false
+    @State private var installType: InstallType = .inPerson
 
     // "Customer not available to sign" flow
     @State private var showingUnavailable = false
@@ -38,6 +39,13 @@ struct SignatureCaptureView: View {
                     Text("By signing below, I confirm that the above work has been completed to my satisfaction.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    Picker("Install Type", selection: $installType) {
+                        ForEach(InstallType.allCases) { type in
+                            Text(type.label).tag(type)
+                        }
+                    }
+                    .pickerStyle(.segmented)
 
                     SignaturePad(signatureImage: $signatureImage, hasSignature: $hasSignature)
                         .id(padID)
@@ -150,12 +158,13 @@ struct SignatureCaptureView: View {
         signedOrder = updated
 
         // Customer signed on-site today → report completion so the CRM
-        // opportunity is marked live (in-person, go-live = today).
+        // opportunity is marked live (go-live = today, install type as selected).
+        let selectedInstallType = installType
         Task { [updated] in
             await store.reportCompletion(
                 for: updated,
                 goLiveDate: Date(),
-                installType: .inPerson,
+                installType: selectedInstallType,
                 signedByCustomer: true
             )
         }

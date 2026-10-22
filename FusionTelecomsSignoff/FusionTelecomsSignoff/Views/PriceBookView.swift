@@ -1,9 +1,29 @@
 import SwiftUI
 
+enum PriceCategory: String, CaseIterable, Identifiable {
+    case all
+    case oneOff = "one_off"
+    case monthly = "monthly_recurring"
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .all: return "All"
+        case .oneOff: return "One-off"
+        case .monthly: return "Monthly"
+        }
+    }
+
+    /// nil for "All" (no category filter sent to the server).
+    var apiValue: String? { self == .all ? nil : rawValue }
+}
+
 struct PriceBookView: View {
     @EnvironmentObject var store: WorkOrderStore
 
     @State private var query = ""
+    @State private var category: PriceCategory = .all
     @State private var items: [PriceBookItem] = []
     @State private var loading = false
     @State private var loadedOnce = false
@@ -15,21 +35,31 @@ struct PriceBookView: View {
 
     var body: some View {
         NavigationStack {
-            content
-                .navigationTitle("Price Book")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(.visible, for: .navigationBar)
-                .toolbarBackground(Color.brandPink, for: .navigationBar)
-                .toolbarColorScheme(.dark, for: .navigationBar)
-                .searchable(text: $query, prompt: "Search products")
-                .onSubmit(of: .search) { Task { await load() } }
-                .refreshable { await load() }
-                .task { if !loadedOnce { await load() } }
-                .alert("Couldn't load prices", isPresented: errorBinding) {
-                    Button("OK", role: .cancel) { errorMessage = nil }
-                } message: {
-                    Text(errorMessage ?? "")
+            VStack(spacing: 0) {
+                Picker("Category", selection: $category) {
+                    ForEach(PriceCategory.allCases) { Text($0.label).tag($0) }
                 }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+
+                content
+            }
+            .navigationTitle("Price Book")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.brandPink, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .searchable(text: $query, prompt: "Search products")
+            .onSubmit(of: .search) { Task { await load() } }
+            .onChange(of: category) { _ in Task { await load() } }
+            .refreshable { await load() }
+            .task { if !loadedOnce { await load() } }
+            .alert("Couldn't load prices", isPresented: errorBinding) {
+                Button("OK", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
 
@@ -71,6 +101,7 @@ struct PriceBookView: View {
         do {
             items = try await QuoteBuilderAPI.searchPriceBook(
                 query: query.trimmingCharacters(in: .whitespaces),
+                category: category.apiValue,
                 baseURL: store.signoffAPIURL,
                 apiKey: store.signoffAPIKey
             )

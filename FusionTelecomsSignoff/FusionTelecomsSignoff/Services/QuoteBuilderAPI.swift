@@ -46,9 +46,12 @@ enum QuoteBuilderAPI {
         }
     }
 
-    static func searchPriceBook(query: String, baseURL: String, apiKey: String) async throws -> [PriceBookItem] {
+    static func searchPriceBook(query: String, category: String?, baseURL: String, apiKey: String) async throws -> [PriceBookItem] {
         var comps = URLComponents(string: "\(trim(baseURL))/api/price-book")
-        if !query.isEmpty { comps?.queryItems = [URLQueryItem(name: "q", value: query)] }
+        var qs: [URLQueryItem] = []
+        if !query.isEmpty { qs.append(URLQueryItem(name: "q", value: query)) }
+        if let category, !category.isEmpty { qs.append(URLQueryItem(name: "category", value: category)) }
+        if !qs.isEmpty { comps?.queryItems = qs }
         guard let url = comps?.url else { throw URLError(.badURL) }
         var request = URLRequest(url: url, timeoutInterval: 20)
         request.setValue(apiKey, forHTTPHeaderField: "X-Signoff-Key")
