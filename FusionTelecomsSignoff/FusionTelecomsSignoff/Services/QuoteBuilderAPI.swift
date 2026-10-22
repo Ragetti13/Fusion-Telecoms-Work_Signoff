@@ -9,6 +9,39 @@ struct LeadInput {
     var notes: String = ""
 }
 
+/// Returned by POST /api/leads — the CRM ids plus the Quote Builder customer
+/// the lead was mirrored into, so the app can open a pre-filled quote.
+struct LeadResult: Decodable {
+    let contactId: String
+    let opportunityId: String
+    let customerId: Int
+}
+
+/// GET /api/contact-lookup result: whether an existing CRM contact matches the
+/// entered email/phone, and their current opportunities.
+struct ContactLookupResult: Decodable {
+    let found: Bool
+    let contact: ContactSummary?
+    let opportunities: [ContactOpportunity]
+}
+
+struct ContactSummary: Decodable {
+    let id: String
+    let name: String?
+    let companyName: String?
+    let email: String?
+    let phone: String?
+}
+
+struct ContactOpportunity: Decodable, Identifiable {
+    let id: String
+    let name: String
+    let pipelineName: String?
+    let stageName: String?
+    let status: String?
+    let monetaryValue: Double?
+}
+
 struct PriceBookItem: Codable, Identifiable {
     let id: Int
     let sku: String?
@@ -27,7 +60,8 @@ struct PriceBookItem: Codable, Identifiable {
 /// Calls to the Quote Builder server for the field-app features (leads, pricing).
 /// All authenticate with the X-Signoff-Key, like the sign-off job endpoints.
 enum QuoteBuilderAPI {
-    static func submitLead(_ lead: LeadInput, baseURL: String, apiKey: String) async throws {
+    @discardableResult
+    static func submitLead(_ lead: LeadInput, baseURL: String, apiKey: String) async throws -> LeadResult {
         guard let url = URL(string: "\(trim(baseURL))/api/leads") else { throw URLError(.badURL) }
         var request = URLRequest(url: url, timeoutInterval: 20)
         request.httpMethod = "POST"
@@ -44,6 +78,30 @@ enum QuoteBuilderAPI {
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             throw apiError(data: data, response: response)
         }
+        return try JSONDecoder().decode(LeadResult.self, from: data)
+    }
+
+    /// Look up an existing CRM contact by email and/or phone before logging a
+    /// lead, so the technician can avoid duplicates and see open opportunities.
+    static func lookupContact(email: String, phone: String, baseURL: String, apiKey: String) async throws -> ContactLookupResult {
+        var comps = URLComponents(string: "\(trim(baseURL))/api/contact-lookup")
+        var qs: [URLQueryItem] = []
+        if !email.isEmpty { qs.append(URLQueryItem(name: "email", value: email)) }
+        if !phone.isEmpty { qs.append(URLQueryItem(name: "phone", value: phone)) }
+        comps?.queryItems = qs
+        guard let url = comps?.url else { throw URLError(.badURL) }
+        var request = URLRequest(url: url, timeoutInterval: 20)
+        request.setValue(apiKey, forHTTPHeaderField: "X-Signoff-Key")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            throw apiError(data: data, response: response)
+        }
+        return try JSONDecoder().decode(ContactLookupResult.self, from: data)
+    }
+
+    /// The Quote Builder web URL for a new quote pre-filled with this customer.
+    static func newQuoteURL(baseURL: String, customerId: Int) -> URL? {
+        URL(string: "\(trim(baseURL))/quotes/new?customerId=\(customerId)")
     }
 
     static func searchPriceBook(query: String, category: String?, baseURL: String, apiKey: String) async throws -> [PriceBookItem] {
