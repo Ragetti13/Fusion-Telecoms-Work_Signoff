@@ -29,6 +29,9 @@
 		BFAB0013000000000000000A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1014000000000000000A /* ShareSheet.swift */; };
 		BFAB0014000000000000000A /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1016000000000000000A /* DeepLinkHandler.swift */; };
 		BFAB0015000000000000000A /* SignoffJobsAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1017000000000000000A /* SignoffJobsAPI.swift */; };
+		BFAB0017000000000000000A /* QuoteBuilderAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1019000000000000000A /* QuoteBuilderAPI.swift */; };
+		BFAB0018000000000000000A /* LeadFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB101A000000000000000A /* LeadFormView.swift */; };
+		BFAB0019000000000000000A /* PriceBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB101B000000000000000A /* PriceBookView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +59,9 @@
 		BFAB1015000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BFAB1016000000000000000A /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
 		BFAB1017000000000000000A /* SignoffJobsAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignoffJobsAPI.swift; sourceTree = "<group>"; };
+		BFAB1019000000000000000A /* QuoteBuilderAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteBuilderAPI.swift; sourceTree = "<group>"; };
+		BFAB101A000000000000000A /* LeadFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadFormView.swift; sourceTree = "<group>"; };
+		BFAB101B000000000000000A /* PriceBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceBookView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +121,8 @@
 				BFAB1012000000000000000A /* PDFImportView.swift */,
 				BFAB1013000000000000000A /* MailComposer.swift */,
 				BFAB1014000000000000000A /* ShareSheet.swift */,
+				BFAB101A000000000000000A /* LeadFormView.swift */,
+				BFAB101B000000000000000A /* PriceBookView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -127,6 +135,7 @@
 				BFAB1011000000000000000A /* PDFFieldExtractor.swift */,
 				BFAB1016000000000000000A /* DeepLinkHandler.swift */,
 				BFAB1017000000000000000A /* SignoffJobsAPI.swift */,
+				BFAB1019000000000000000A /* QuoteBuilderAPI.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -237,6 +246,9 @@
 				BFAB0013000000000000000A /* ShareSheet.swift in Sources */,
 				BFAB0014000000000000000A /* DeepLinkHandler.swift in Sources */,
 				BFAB0015000000000000000A /* SignoffJobsAPI.swift in Sources */,
+				BFAB0017000000000000000A /* QuoteBuilderAPI.swift in Sources */,
+				BFAB0018000000000000000A /* LeadFormView.swift in Sources */,
+				BFAB0019000000000000000A /* PriceBookView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
