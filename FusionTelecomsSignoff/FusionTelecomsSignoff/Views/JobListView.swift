@@ -13,7 +13,7 @@ struct JobListView: View {
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle("Work Sign-Off")
+                .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent }
                 .toolbarBackground(.visible, for: .navigationBar)
@@ -55,18 +55,18 @@ struct JobListView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
+            // Left-aligned brand wordmark. (Readable placeholder for the
+            // landscape logo artwork — swap Text for Image once the asset lands.)
+            Text("Fusion Telecoms")
+                .font(.title3).fontWeight(.bold)
+                .foregroundStyle(.white)
+                .accessibilityAddTraits(.isHeader)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
             Button { showingSettings = true } label: {
                 Image(systemName: "person.circle")
                     .foregroundStyle(.white)
             }
-        }
-        ToolbarItem(placement: .principal) {
-            Image("Logo")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 30)
-                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-                .accessibilityLabel("Fusion Telecoms")
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button { Task { await store.refreshProvisioningJobs() } } label: {
