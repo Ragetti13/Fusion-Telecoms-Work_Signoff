@@ -1,7 +1,12 @@
 import Foundation
 import Combine
+import Security
 
 class WorkOrderStore: ObservableObject {
+    /// Pre-filled server URL so technicians don't have to type it. The URL
+    /// isn't secret; the API key is (see KeychainStore below).
+    static let defaultAPIURL = "https://quote-builder.fusion-telecoms.com"
+
     @Published var workOrders: [WorkOrder] = []
     @Published var technicianName: String = ""
     @Published var pendingPrefill: JobPrefill?
@@ -19,8 +24,22 @@ class WorkOrderStore: ObservableObject {
     init() {
         load()
         technicianName = UserDefaults.standard.string(forKey: techKey) ?? ""
-        signoffAPIURL = UserDefaults.standard.string(forKey: apiURLKey) ?? ""
-        signoffAPIKey = UserDefaults.standard.string(forKey: apiKeyKey) ?? ""
+        // Server URL: pre-fill the production default on first run, but respect a
+        // saved value thereafter (object(forKey:) is nil only before the first save).
+        if UserDefaults.standard.object(forKey: apiURLKey) == nil {
+            signoffAPIURL = Self.defaultAPIURL
+        } else {
+            signoffAPIURL = UserDefaults.standard.string(forKey: apiURLKey) ?? ""
+        }
+        // API key lives in the Keychain so it survives app reinstalls/updates.
+        // Migrate a key previously stored in UserDefaults, then scrub the plaintext.
+        if let fromKeychain = KeychainStore.read(apiKeyKey) {
+            signoffAPIKey = fromKeychain
+        } else if let legacy = UserDefaults.standard.string(forKey: apiKeyKey), !legacy.isEmpty {
+            signoffAPIKey = legacy
+            KeychainStore.write(legacy, for: apiKeyKey)
+            UserDefaults.standard.removeObject(forKey: apiKeyKey)
+        }
     }
 
     func save() {
@@ -29,7 +48,8 @@ class WorkOrderStore: ObservableObject {
         }
         UserDefaults.standard.set(technicianName, forKey: techKey)
         UserDefaults.standard.set(signoffAPIURL, forKey: apiURLKey)
-        UserDefaults.standard.set(signoffAPIKey, forKey: apiKeyKey)
+        // The key is a secret — store it in the Keychain, never UserDefaults.
+        KeychainStore.write(signoffAPIKey, for: apiKeyKey)
     }
 
     private func load() {
@@ -131,5 +151,39 @@ class WorkOrderStore: ObservableObject {
             baseURL: signoffAPIURL,
             apiKey: signoffAPIKey
         )
+    }
+}
+
+/// Minimal Keychain wrapper for the one secret this app stores (the sync API
+/// key). Generic-password items persist across app reinstalls/updates on a
+/// device, so the key only ever has to be entered once.
+private enum KeychainStore {
+    static func write(_ value: String, for account: String) {
+        let base: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: account,
+        ]
+        // Replace any existing item; an empty value just clears it.
+        SecItemDelete(base as CFDictionary)
+        guard !value.isEmpty else { return }
+        var add = base
+        add[kSecValueData as String] = Data(value.utf8)
+        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        SecItemAdd(add as CFDictionary, nil)
+    }
+
+    static func read(_ account: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data,
+              let value = String(data: data, encoding: .utf8)
+        else { return nil }
+        return value
     }
 }
