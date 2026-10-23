@@ -47,12 +47,13 @@ struct CompletedJobDetailView: View {
                     Label("Export as PDF", systemImage: "square.and.arrow.up")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .brandPrimaryButton()
             }
             .padding()
         }
         .navigationTitle(workOrder.displayName)
         .navigationBarTitleDisplayMode(.inline)
+        .brandNavigationBar()
         .sheet(isPresented: $showingShare) {
             if let url = pdfURL {
                 ShareSheet(items: [url])

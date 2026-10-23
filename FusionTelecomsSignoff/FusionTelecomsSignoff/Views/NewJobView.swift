@@ -83,17 +83,15 @@ struct NewJobView: View {
 
                 Section {
                     Button(action: saveJob) {
-                        HStack {
-                            Spacer()
-                            Text("Save Job").fontWeight(.semibold)
-                            Spacer()
-                        }
+                        Text("Save Job").frame(maxWidth: .infinity)
                     }
                     .disabled(!isValid)
+                    .brandPrimaryButton()
                 }
             }
             .navigationTitle("New Job")
             .navigationBarTitleDisplayMode(.inline)
+            .brandNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
