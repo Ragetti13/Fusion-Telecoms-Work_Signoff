@@ -17,6 +17,18 @@ struct LeadResult: Decodable {
     let customerId: Int
 }
 
+/// A new product to add to the Quote Builder catalogue from the app.
+struct ProductInput {
+    var name: String
+    var salePrice: Double
+    var category: String            // "one_off" | "monthly_recurring"
+    var sku: String = ""
+    var brand: String = ""
+    var description: String = ""
+    var minimumTermMonths: Int? = nil
+    var isHardware: Bool = false
+}
+
 /// GET /api/contact-lookup result: whether an existing CRM contact matches the
 /// entered email/phone, and their current opportunities.
 struct ContactLookupResult: Decodable {
@@ -97,6 +109,33 @@ enum QuoteBuilderAPI {
             throw apiError(data: data, response: response)
         }
         return try JSONDecoder().decode(ContactLookupResult.self, from: data)
+    }
+
+    /// Add a product to the shared Quote Builder catalogue. Returns the created
+    /// item (sale-price view; cost is defaulted to 0 server-side for an admin).
+    @discardableResult
+    static func addProduct(_ product: ProductInput, baseURL: String, apiKey: String) async throws -> PriceBookItem {
+        guard let url = URL(string: "\(trim(baseURL))/api/price-book") else { throw URLError(.badURL) }
+        var request = URLRequest(url: url, timeoutInterval: 20)
+        request.httpMethod = "POST"
+        request.setValue(apiKey, forHTTPHeaderField: "X-Signoff-Key")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        var body: [String: Any] = [
+            "name": product.name,
+            "salePrice": product.salePrice,
+            "category": product.category,
+        ]
+        if !product.sku.isEmpty { body["sku"] = product.sku }
+        if !product.brand.isEmpty { body["brand"] = product.brand }
+        if !product.description.isEmpty { body["description"] = product.description }
+        if let term = product.minimumTermMonths { body["minimumTermMonths"] = term }
+        if product.isHardware { body["isHardware"] = true }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw apiError(data: data, response: response)
+        }
+        return try JSONDecoder().decode(PriceBookItem.self, from: data)
     }
 
     /// The Quote Builder web URL for a new quote pre-filled with this customer.
