@@ -42,7 +42,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Quote Builder Sync")
                 } footer: {
-                    Text("Jobs queued in Quote Builder are pulled down automatically when you open the app.")
+                    Text("Jobs queued in Quote Builder are pulled down automatically when you open the app. The server address is pre-filled, and your key is stored securely and kept across app updates.")
                 }
 
                 Section {
