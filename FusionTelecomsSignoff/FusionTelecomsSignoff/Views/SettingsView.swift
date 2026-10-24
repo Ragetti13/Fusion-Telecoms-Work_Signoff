@@ -19,7 +19,7 @@ struct SettingsView: View {
                 Section {
                     VStack(spacing: 10) {
                         LogoBadge(size: 84, corner: 20)
-                        Text("Fusion Telecoms")
+                        Text("Field Ops")
                             .font(.headline)
                         Text(appVersion)
                             .font(.subheadline)
