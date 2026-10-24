@@ -65,7 +65,7 @@ struct SignatureCaptureView: View {
                         Button("Confirm Sign-Off") {
                             showingConfirm = true
                         }
-                        .buttonStyle(.borderedProminent)
+                        .brandPrimaryButton()
                         .disabled(!hasSignature)
                     }
 
@@ -78,9 +78,10 @@ struct SignatureCaptureView: View {
                     } label: {
                         Label("Customer not available to sign", systemImage: "person.fill.questionmark")
                             .font(.subheadline)
+                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.blue)
+                    .buttonStyle(.bordered)
+                    .tint(.brandPink)
                 }
                 .padding()
                 .background(Color(.systemGroupedBackground))
@@ -90,6 +91,7 @@ struct SignatureCaptureView: View {
         }
         .navigationTitle("Get Signature")
         .navigationBarTitleDisplayMode(.inline)
+        .brandNavigationBar()
         .alert("Confirm Sign-Off", isPresented: $showingConfirm) {
             Button("Cancel", role: .cancel) {}
             Button("Confirm") { saveAndEmail() }
@@ -131,12 +133,15 @@ struct SignatureCaptureView: View {
                         Text("Use this when the customer isn't present to sign. The job is recorded as completed and the go-live date you enter is sent to the CRM.")
                     }
                     Section {
-                        Button("Record Completion") { completeWithoutSignature() }
-                            .fontWeight(.semibold)
+                        Button { completeWithoutSignature() } label: {
+                            Text("Record Completion").frame(maxWidth: .infinity)
+                        }
+                        .brandPrimaryButton()
                     }
                 }
                 .navigationTitle("No Signature")
                 .navigationBarTitleDisplayMode(.inline)
+                .brandNavigationBar()
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Cancel") { showingUnavailable = false }

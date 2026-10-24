@@ -35,7 +35,7 @@ struct PDFImportView: View {
             Spacer()
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.system(size: 64))
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.brandPink)
             VStack(spacing: 8) {
                 Text("Import from PDF")
                     .font(.title2).fontWeight(.semibold)
@@ -51,7 +51,7 @@ struct PDFImportView: View {
                     Label("Choose PDF", systemImage: "folder.badge.plus")
                         .frame(width: 260)
                 }
-                .buttonStyle(.borderedProminent)
+                .brandPrimaryButton()
             }
             if let err = readError {
                 Text(err)
@@ -62,6 +62,7 @@ struct PDFImportView: View {
         }
         .navigationTitle("Import PDF")
         .navigationBarTitleDisplayMode(.inline)
+        .brandNavigationBar()
         .toolbar {
             ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
         }
@@ -143,11 +144,16 @@ struct FieldReviewView: View {
                 TextField("Not detected", text: $fields.workDescription, axis: .vertical).lineLimit(3...8)
             }
             Section {
-                Button("Apply to Job Form") { onComplete(true, fields) }.fontWeight(.semibold)
-                Button("Cancel", role: .cancel) { onComplete(false, fields) }.foregroundStyle(.secondary)
+                Button { onComplete(true, fields) } label: {
+                    Text("Apply to Job Form").frame(maxWidth: .infinity)
+                }
+                .brandPrimaryButton()
+                Button("Cancel", role: .cancel) { onComplete(false, fields) }
+                    .foregroundStyle(.secondary)
             }
         }
         .navigationTitle("Extracted Data")
         .navigationBarTitleDisplayMode(.inline)
+        .brandNavigationBar()
     }
 }

@@ -18,7 +18,7 @@ struct JobSummaryCard: View {
                 Spacer()
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.title2)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(Color.brandPink)
             }
 
             Divider()
