@@ -3,6 +3,15 @@ import SwiftUI
 struct JobSummaryCard: View {
     let workOrder: WorkOrder
 
+    /// Apple Maps directions to the site address.
+    private var directionsURL: URL? {
+        let address = workOrder.customerAddress.trimmingCharacters(in: .whitespaces)
+        guard !address.isEmpty,
+              let encoded = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        else { return nil }
+        return URL(string: "https://maps.apple.com/?daddr=\(encoded)")
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -27,6 +36,15 @@ struct JobSummaryCard: View {
 
             if !workOrder.customerAddress.isEmpty {
                 DetailRow(label: "Address", value: workOrder.customerAddress)
+                if let url = directionsURL {
+                    Link(destination: url) {
+                        Label("Directions", systemImage: "map.fill")
+                            .font(.subheadline).fontWeight(.semibold)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.brandPink)
+                    .padding(.leading, 85)
+                }
             }
 
             DetailRow(label: "Date", value: workOrder.completedDate.formatted(date: .long, time: .shortened))
