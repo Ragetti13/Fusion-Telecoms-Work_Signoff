@@ -7,7 +7,67 @@ struct PDFGenerator {
         return renderer.pdfData { ctx in
             ctx.beginPage()
             draw(workOrder: workOrder, in: pageRect)
+
+            let photos = workOrder.photos
+            if !photos.isEmpty {
+                drawPhotoPages(photos, in: pageRect, ctx: ctx)
+            }
         }
+    }
+
+    // Lay out install photos on fresh A4 pages, four per page in a 2×2 grid.
+    private static func drawPhotoPages(_ photos: [UIImage], in page: CGRect, ctx: UIGraphicsPDFRendererContext) {
+        let margin: CGFloat = 50
+        let brandPink = UIColor(red: 0.929, green: 0.059, blue: 0.400, alpha: 1.0)
+        let perPage = 4
+        let columns = 2
+        let gutter: CGFloat = 16
+        let headerHeight: CGFloat = 40
+        let cellW = (page.width - margin * 2 - gutter) / CGFloat(columns)
+        let gridTop = margin + headerHeight
+        let cellH = (page.height - gridTop - margin - gutter) / 2
+
+        var index = 0
+        while index < photos.count {
+            ctx.beginPage()
+            // Page header
+            NSAttributedString(string: "Installation Photos", attributes: [
+                .font: UIFont.systemFont(ofSize: 16, weight: .bold),
+                .foregroundColor: brandPink
+            ]).draw(at: CGPoint(x: margin, y: margin))
+            drawHRule(from: CGPoint(x: margin, y: margin + 28),
+                      to: CGPoint(x: page.width - margin, y: margin + 28),
+                      color: brandPink, width: 1)
+
+            for slot in 0..<perPage where index < photos.count {
+                let row = slot / columns
+                let col = slot % columns
+                let cellX = margin + CGFloat(col) * (cellW + gutter)
+                let cellY = gridTop + CGFloat(row) * (cellH + gutter)
+                let cell = CGRect(x: cellX, y: cellY, width: cellW, height: cellH)
+                drawPhoto(photos[index], in: cell)
+                index += 1
+            }
+        }
+    }
+
+    // Aspect-fit a photo within a cell, with a thin border.
+    private static func drawPhoto(_ image: UIImage, in cell: CGRect) {
+        let imgAspect = image.size.width / max(image.size.height, 1)
+        let cellAspect = cell.width / cell.height
+        var drawRect = cell
+        if imgAspect > cellAspect {
+            let h = cell.width / imgAspect
+            drawRect = CGRect(x: cell.minX, y: cell.midY - h / 2, width: cell.width, height: h)
+        } else {
+            let w = cell.height * imgAspect
+            drawRect = CGRect(x: cell.midX - w / 2, y: cell.minY, width: w, height: cell.height)
+        }
+        image.draw(in: drawRect)
+        UIColor.systemGray4.setStroke()
+        let border = UIBezierPath(rect: drawRect)
+        border.lineWidth = 0.5
+        border.stroke()
     }
 
     private static func draw(workOrder: WorkOrder, in page: CGRect) {

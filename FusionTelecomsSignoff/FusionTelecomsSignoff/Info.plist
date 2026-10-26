@@ -31,6 +31,8 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>The camera is used to attach install photos to a job's completion certificate.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your current location is used to automatically fill in the site address on work orders.</string>
 	<key>UIApplicationSceneManifest</key>

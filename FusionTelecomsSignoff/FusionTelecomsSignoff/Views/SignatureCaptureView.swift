@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import PhotosUI
 import MessageUI
 
 private let supportEmail = "support@fusion-telecoms.com"
@@ -15,6 +16,11 @@ struct SignatureCaptureView: View {
     @State private var padID = UUID()
     @State private var showingConfirm = false
     @State private var installType: InstallType = .inPerson
+
+    // Install photos captured on-site
+    @State private var photos: [UIImage] = []
+    @State private var pickerItems: [PhotosPickerItem] = []
+    @State private var showingCamera = false
 
     // "Customer not available to sign" flow
     @State private var showingUnavailable = false
@@ -32,6 +38,8 @@ struct SignatureCaptureView: View {
         ScrollView {
             VStack(spacing: 20) {
                 JobSummaryCard(workOrder: workOrder)
+
+                photosCard
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Customer Signature")
@@ -92,6 +100,22 @@ struct SignatureCaptureView: View {
         .navigationTitle("Get Signature")
         .navigationBarTitleDisplayMode(.inline)
         .brandNavigationBar()
+        .fullScreenCover(isPresented: $showingCamera) {
+            CameraPicker { image in photos.append(image) }
+                .ignoresSafeArea()
+        }
+        .onChange(of: pickerItems) { items in
+            guard !items.isEmpty else { return }
+            Task {
+                for item in items {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data) {
+                        photos.append(image)
+                    }
+                }
+                pickerItems = []
+            }
+        }
         .alert("Confirm Sign-Off", isPresented: $showingConfirm) {
             Button("Cancel", role: .cancel) {}
             Button("Confirm") { saveAndEmail() }
@@ -151,6 +175,64 @@ struct SignatureCaptureView: View {
         }
     }
 
+    // MARK: - Photos
+
+    private var photosCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Install Photos").font(.headline)
+                Spacer()
+                if !photos.isEmpty {
+                    Text("\(photos.count)").foregroundStyle(.secondary)
+                }
+            }
+            Text("Attach before/after photos — they're added to the completion certificate.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            if !photos.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(Array(photos.enumerated()), id: \.offset) { index, image in
+                            ZStack(alignment: .topTrailing) {
+                                Image(uiImage: image)
+                                    .resizable().scaledToFill()
+                                    .frame(width: 88, height: 88)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                Button {
+                                    photos.remove(at: index)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .symbolRenderingMode(.palette)
+                                        .foregroundStyle(.white, .black.opacity(0.55))
+                                        .font(.system(size: 20))
+                                }
+                                .padding(3)
+                            }
+                        }
+                    }
+                }
+            }
+
+            HStack(spacing: 12) {
+                Button { showingCamera = true } label: {
+                    Label("Take Photo", systemImage: "camera.fill").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(.brandPink)
+
+                PhotosPicker(selection: $pickerItems, maxSelectionCount: 10, matching: .images) {
+                    Label("From Library", systemImage: "photo.on.rectangle").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(.brandPink)
+            }
+        }
+        .padding()
+        .background(Color(.systemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
     // MARK: - Actions
 
     private func saveAndEmail() {
@@ -159,6 +241,7 @@ struct SignatureCaptureView: View {
         var updated = workOrder
         updated.signatureData = image.pngData()
         updated.isSigned = true
+        updated.photoFilenames = PhotoStore.save(photos, for: updated.id)
         store.update(updated)
         signedOrder = updated
 
@@ -196,6 +279,7 @@ struct SignatureCaptureView: View {
     private func completeWithoutSignature() {
         var updated = workOrder
         updated.isSigned = true
+        updated.photoFilenames = PhotoStore.save(photos, for: updated.id)
         store.update(updated)
         signedOrder = updated
 
@@ -229,6 +313,38 @@ struct SignatureCaptureView: View {
             showingMailComposer = true
         } else {
             showingShareSheet = true
+        }
+    }
+}
+
+/// Camera capture via UIImagePickerController (PhotosPicker can't take photos).
+struct CameraPicker: UIViewControllerRepresentable {
+    let onCapture: (UIImage) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = UIImagePickerController.isSourceTypeAvailable(.camera) ? .camera : .photoLibrary
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ controller: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: CameraPicker
+        init(_ parent: CameraPicker) { self.parent = parent }
+
+        func imagePickerController(_ picker: UIImagePickerController,
+                                   didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage { parent.onCapture(image) }
+            parent.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
         }
     }
 }
