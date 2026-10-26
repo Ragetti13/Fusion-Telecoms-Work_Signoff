@@ -9,8 +9,10 @@ struct SettingsView: View {
     @State private var apiKey = ""
 
     private var appVersion: String {
-        let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-        return "Version \(v)"
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = info?["CFBundleVersion"] as? String ?? "1"
+        return "Version \(version) (\(build))"
     }
 
     var body: some View {
