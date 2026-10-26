@@ -23,6 +23,41 @@ extension Color {
     static let brandPurple = Color(hex: 0x8C5BA6)
 }
 
+extension View {
+    /// The branded pink navigation bar used on every screen, so the identity
+    /// carries through from the tabs into pushed/presented screens too.
+    func brandNavigationBar() -> some View {
+        self
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.brandPink, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    /// The single primary-action button look used across the app's forms and
+    /// screens, so the main call-to-action reads the same everywhere.
+    func brandPrimaryButton() -> some View {
+        self
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .tint(.brandPink)
+    }
+}
+
+/// The leading landscape logo shown in the navigation bar of the main tabs.
+/// `.original` keeps the white wordmark + coloured atom dots readable on pink.
+struct BrandLogoLeading: ToolbarContent {
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Image("LogoLandscape")
+                .renderingMode(.original)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 26)
+                .accessibilityLabel("Fusion Telecoms")
+        }
+    }
+}
+
 /// The Fusion Telecoms logo as a rounded, bordered badge. The logo art is
 /// white-on-pink, so the pink tile reads as a brand mark on light surfaces.
 struct LogoBadge: View {

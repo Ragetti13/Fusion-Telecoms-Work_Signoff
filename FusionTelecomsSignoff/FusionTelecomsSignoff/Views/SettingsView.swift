@@ -8,15 +8,22 @@ struct SettingsView: View {
     @State private var apiURL = ""
     @State private var apiKey = ""
 
+    private var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = info?["CFBundleVersion"] as? String ?? "1"
+        return "Version \(version) (\(build))"
+    }
+
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     VStack(spacing: 10) {
                         LogoBadge(size: 84, corner: 20)
-                        Text("Work Sign-Off")
+                        Text("Field Ops")
                             .font(.headline)
-                        Text("Fusion Telecoms")
+                        Text(appVersion)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -60,6 +67,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .brandNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {

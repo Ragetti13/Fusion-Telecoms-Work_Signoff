@@ -11,8 +11,6 @@ struct ContentView: View {
                 .tabItem { Label("Price Book", systemImage: "sterlingsign.circle") }
         }
         .tint(.brandPink)
-        // Keep a consistent bright, on-brand look on-site regardless of the
-        // device's Light/Dark setting.
-        .preferredColorScheme(.light)
+        // Follows the device's Light/Dark setting.
     }
 }

@@ -54,22 +54,7 @@ struct JobListView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            // Left-aligned landscape logo. .original keeps the white wordmark and
-            // coloured atom dots (otherwise the bar would tint it flat/invisible).
-            Image("LogoLandscape")
-                .renderingMode(.original)
-                .resizable()
-                .scaledToFit()
-                .frame(height: 26)
-                .accessibilityLabel("Fusion Telecoms")
-        }
-        ToolbarItem(placement: .topBarTrailing) {
-            Button { showingSettings = true } label: {
-                Image(systemName: "person.circle")
-                    .foregroundStyle(.white)
-            }
-        }
+        BrandLogoLeading()
         ToolbarItem(placement: .topBarTrailing) {
             Button { Task { await store.refreshProvisioningJobs() } } label: {
                 Image(systemName: "arrow.clockwise")
@@ -80,6 +65,18 @@ struct JobListView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button { showingNewJob = true } label: {
                 Image(systemName: "plus")
+                    .foregroundStyle(.white)
+            }
+        }
+        // Settings tucked into a menu (a cog), leaving room for more app
+        // settings as it grows.
+        ToolbarItem(placement: .topBarTrailing) {
+            Menu {
+                Button { showingSettings = true } label: {
+                    Label("Settings", systemImage: "gearshape")
+                }
+            } label: {
+                Image(systemName: "gearshape")
                     .foregroundStyle(.white)
             }
         }

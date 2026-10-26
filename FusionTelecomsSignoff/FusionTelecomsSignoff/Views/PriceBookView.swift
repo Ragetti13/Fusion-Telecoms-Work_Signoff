@@ -46,12 +46,11 @@ struct PriceBookView: View {
 
                 content
             }
-            .navigationTitle("Price Book")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(Color.brandPink, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .brandNavigationBar()
             .toolbar {
+                BrandLogoLeading()
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingAdd = true } label: {
                         Image(systemName: "plus").foregroundStyle(.white)
@@ -224,12 +223,13 @@ struct AddProductView: View {
                 Section {
                     Button { Task { await save() } } label: {
                         HStack {
-                            if saving { ProgressView().padding(.trailing, 4) }
+                            if saving { ProgressView().tint(.white).padding(.trailing, 4) }
                             Text("Add to Price Book")
                         }
+                        .frame(maxWidth: .infinity)
                     }
                     .disabled(!canSave)
-                    .fontWeight(.semibold)
+                    .brandPrimaryButton()
                 }
             }
             .navigationTitle("New Product")

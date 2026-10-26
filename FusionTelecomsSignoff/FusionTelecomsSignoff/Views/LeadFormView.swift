@@ -1,8 +1,15 @@
 import SwiftUI
+import UIKit
+import SafariServices
+
+/// Identifiable wrapper so a URL can drive a `.sheet(item:)`.
+struct QuoteLink: Identifiable {
+    let id = UUID()
+    let url: URL
+}
 
 struct LeadFormView: View {
     @EnvironmentObject var store: WorkOrderStore
-    @Environment(\.openURL) private var openURL
 
     @State private var name = ""
     @State private var company = ""
@@ -20,6 +27,7 @@ struct LeadFormView: View {
 
     // Quote pre-fill after a successful lead (Feature B)
     @State private var newQuoteURL: URL?
+    @State private var quoteLink: QuoteLink?
 
     private var canSubmit: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty && !submitting
@@ -44,11 +52,13 @@ struct LeadFormView: View {
                 submitSection
                 quoteSection
             }
-            .navigationTitle("New Lead")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(Color.brandPink, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar { BrandLogoLeading() }
+            .brandNavigationBar()
+            .sheet(item: $quoteLink) { link in
+                SafariView(url: link.url).ignoresSafeArea()
+            }
             .alert(isError ? "Couldn't send lead" : "Lead sent", isPresented: resultBinding) {
                 Button("OK", role: .cancel) { resultMessage = nil }
             } message: {
@@ -124,12 +134,13 @@ struct LeadFormView: View {
         Section {
             Button { Task { await submit() } } label: {
                 HStack {
-                    if submitting { ProgressView().padding(.trailing, 4) }
+                    if submitting { ProgressView().tint(.white).padding(.trailing, 4) }
                     Text("Send to CRM")
                 }
+                .frame(maxWidth: .infinity)
             }
             .disabled(!canSubmit)
-            .fontWeight(.semibold)
+            .brandPrimaryButton()
         }
     }
 
@@ -137,10 +148,11 @@ struct LeadFormView: View {
     private var quoteSection: some View {
         if let url = newQuoteURL {
             Section {
-                Button { openURL(url) } label: {
+                Button { quoteLink = QuoteLink(url: url) } label: {
                     Label("Build a quote for this lead", systemImage: "doc.badge.plus")
+                        .frame(maxWidth: .infinity)
                 }
-                .fontWeight(.semibold)
+                .brandPrimaryButton()
             } footer: {
                 Text("Opens Quote Builder with this customer pre-selected.")
             }
@@ -265,4 +277,19 @@ struct OpportunityRow: View {
         }
         .padding(.vertical, 2)
     }
+}
+
+/// In-app Safari so "Build a quote" opens Quote Builder without leaving the app.
+struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let config = SFSafariViewController.Configuration()
+        config.barCollapsingEnabled = true
+        let controller = SFSafariViewController(url: url, configuration: config)
+        controller.preferredControlTintColor = UIColor(Color.brandPink)
+        return controller
+    }
+
+    func updateUIViewController(_ controller: SFSafariViewController, context: Context) {}
 }
