@@ -29,6 +29,9 @@ struct PriceBookView: View {
     @State private var loadedOnce = false
     @State private var errorMessage: String?
     @State private var showingAdd = false
+    // Set when the server was unreachable and results came from the local cache.
+    @State private var usingCache = false
+    @State private var cacheDate: Date?
 
     private var errorBinding: Binding<Bool> {
         Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
@@ -43,6 +46,10 @@ struct PriceBookView: View {
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
                 .padding(.vertical, 8)
+
+                if usingCache {
+                    offlineBanner
+                }
 
                 content
             }
@@ -101,6 +108,19 @@ struct PriceBookView: View {
         .padding()
     }
 
+    private var offlineBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "wifi.slash")
+            Text(cacheDate.map { "Saved prices (offline) · updated \($0.formatted(date: .abbreviated, time: .shortened))" }
+                 ?? "Saved prices (offline)")
+                .font(.caption)
+            Spacer()
+        }
+        .foregroundStyle(.secondary)
+        .padding(.horizontal)
+        .padding(.bottom, 6)
+    }
+
     private func load() async {
         guard !store.signoffAPIURL.isEmpty, !store.signoffAPIKey.isEmpty else {
             errorMessage = "Set your server URL and API key in Settings first."
@@ -108,15 +128,67 @@ struct PriceBookView: View {
         }
         loading = true
         defer { loading = false; loadedOnce = true }
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
         do {
-            items = try await QuoteBuilderAPI.searchPriceBook(
-                query: query.trimmingCharacters(in: .whitespaces),
+            let results = try await QuoteBuilderAPI.searchPriceBook(
+                query: trimmed,
                 category: category.apiValue,
                 baseURL: store.signoffAPIURL,
                 apiKey: store.signoffAPIKey
             )
+            items = results
+            usingCache = false
+            // Cache the full catalogue (unfiltered fetch) for offline use.
+            if trimmed.isEmpty && category == .all {
+                PriceBookCache.save(results)
+            }
         } catch {
-            errorMessage = error.localizedDescription
+            // Offline / server down — fall back to the cached catalogue, filtered
+            // locally, so the technician can still look prices up on site.
+            if let cached = PriceBookCache.load() {
+                items = PriceBookCache.filter(cached, query: trimmed, category: category)
+                usingCache = true
+                cacheDate = PriceBookCache.savedAt
+            } else {
+                errorMessage = "Couldn't reach the server and no saved prices are available yet. Open the Price Book once while online."
+            }
+        }
+    }
+}
+
+/// Local cache of the full price book so lookups work with no signal.
+enum PriceBookCache {
+    private static let itemsKey = "PriceBookCacheItems"
+    private static let dateKey = "PriceBookCacheSavedAt"
+
+    static func save(_ items: [PriceBookItem]) {
+        guard let data = try? JSONEncoder().encode(items) else { return }
+        UserDefaults.standard.set(data, forKey: itemsKey)
+        UserDefaults.standard.set(Date(), forKey: dateKey)
+    }
+
+    static func load() -> [PriceBookItem]? {
+        guard let data = UserDefaults.standard.data(forKey: itemsKey),
+              let items = try? JSONDecoder().decode([PriceBookItem].self, from: data)
+        else { return nil }
+        return items
+    }
+
+    static var savedAt: Date? {
+        UserDefaults.standard.object(forKey: dateKey) as? Date
+    }
+
+    /// Filter the cached catalogue the way the server would (name/sku/brand,
+    /// plus category), for offline search.
+    static func filter(_ all: [PriceBookItem], query: String, category: PriceCategory) -> [PriceBookItem] {
+        let q = query.lowercased()
+        return all.filter { item in
+            let matchesCategory = category == .all || item.category == category.rawValue
+            let matchesQuery = q.isEmpty
+                || item.name.lowercased().contains(q)
+                || (item.sku?.lowercased().contains(q) ?? false)
+                || (item.brand?.lowercased().contains(q) ?? false)
+            return matchesCategory && matchesQuery
         }
     }
 }
