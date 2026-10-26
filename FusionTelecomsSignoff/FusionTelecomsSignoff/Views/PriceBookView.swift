@@ -28,6 +28,7 @@ struct PriceBookView: View {
     @State private var loading = false
     @State private var loadedOnce = false
     @State private var errorMessage: String?
+    @State private var showingAdd = false
 
     private var errorBinding: Binding<Bool> {
         Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
@@ -50,11 +51,21 @@ struct PriceBookView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color.brandPink, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingAdd = true } label: {
+                        Image(systemName: "plus").foregroundStyle(.white)
+                    }
+                }
+            }
             .searchable(text: $query, prompt: "Search products")
             .onSubmit(of: .search) { Task { await load() } }
             .onChange(of: category) { _ in Task { await load() } }
             .refreshable { await load() }
             .task { if !loadedOnce { await load() } }
+            .sheet(isPresented: $showingAdd) {
+                AddProductView { Task { await load() } }
+            }
             .alert("Couldn't load prices", isPresented: errorBinding) {
                 Button("OK", role: .cancel) { errorMessage = nil }
             } message: {
@@ -136,5 +147,136 @@ struct PriceRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+/// Add a new product to the Quote Builder catalogue from the app. Cost price is
+/// set server-side (defaults to 0 for an admin to complete), so it isn't shown.
+struct AddProductView: View {
+    @EnvironmentObject var store: WorkOrderStore
+    @Environment(\.dismiss) private var dismiss
+
+    /// Called after a product is saved, so the list behind can refresh.
+    let onSaved: () -> Void
+
+    enum Category: String, CaseIterable, Identifiable {
+        case oneOff = "one_off"
+        case monthly = "monthly_recurring"
+        var id: String { rawValue }
+        var label: String { self == .oneOff ? "One-off" : "Monthly" }
+    }
+
+    @State private var name = ""
+    @State private var category: Category = .oneOff
+    @State private var priceText = ""
+    @State private var sku = ""
+    @State private var brand = ""
+    @State private var details = ""
+    @State private var termText = ""
+    @State private var isHardware = false
+
+    @State private var saving = false
+    @State private var errorMessage: String?
+
+    private var price: Double? { Double(priceText.replacingOccurrences(of: ",", with: ".")) }
+    private var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && (price ?? -1) >= 0 && !saving
+    }
+
+    private var errorBinding: Binding<Bool> {
+        Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Product name", text: $name)
+                    Picker("Type", selection: $category) {
+                        ForEach(Category.allCases) { Text($0.label).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    HStack {
+                        Text("£")
+                        TextField(category == .monthly ? "Price per month" : "Price", text: $priceText)
+                            .keyboardType(.decimalPad)
+                    }
+                    if category == .monthly {
+                        TextField("Minimum term (months)", text: $termText)
+                            .keyboardType(.numberPad)
+                    }
+                } header: {
+                    Text("Product")
+                } footer: {
+                    Text("Sale price only. The cost price is set in Quote Builder by the office.")
+                }
+
+                Section("Details (optional)") {
+                    TextField("SKU", text: $sku)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                    TextField("Brand", text: $brand)
+                    TextField("Description", text: $details, axis: .vertical)
+                        .lineLimit(2...5)
+                    Toggle("Hardware item", isOn: $isHardware)
+                }
+
+                Section {
+                    Button { Task { await save() } } label: {
+                        HStack {
+                            if saving { ProgressView().padding(.trailing, 4) }
+                            Text("Add to Price Book")
+                        }
+                    }
+                    .disabled(!canSave)
+                    .fontWeight(.semibold)
+                }
+            }
+            .navigationTitle("New Product")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.brandPink, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .alert("Couldn't add product", isPresented: errorBinding) {
+                Button("OK", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+        }
+    }
+
+    private func save() async {
+        guard !store.signoffAPIURL.isEmpty, !store.signoffAPIKey.isEmpty else {
+            errorMessage = "Set your server URL and API key in Settings first."
+            return
+        }
+        guard let price else {
+            errorMessage = "Enter a valid price."
+            return
+        }
+        saving = true
+        defer { saving = false }
+        let product = ProductInput(
+            name: name.trimmingCharacters(in: .whitespaces),
+            salePrice: price,
+            category: category.rawValue,
+            sku: sku.trimmingCharacters(in: .whitespaces),
+            brand: brand.trimmingCharacters(in: .whitespaces),
+            description: details.trimmingCharacters(in: .whitespaces),
+            minimumTermMonths: category == .monthly ? Int(termText) : nil,
+            isHardware: isHardware
+        )
+        do {
+            try await QuoteBuilderAPI.addProduct(product, baseURL: store.signoffAPIURL, apiKey: store.signoffAPIKey)
+            onSaved()
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 }
