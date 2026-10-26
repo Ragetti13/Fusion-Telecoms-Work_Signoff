@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var store: WorkOrderStore
+    @EnvironmentObject var lock: AppLockManager
     @Environment(\.dismiss) var dismiss
 
     @State private var name = ""
@@ -50,6 +51,22 @@ struct SettingsView: View {
                     Text("Quote Builder Sync")
                 } footer: {
                     Text("Jobs queued in Quote Builder are pulled down automatically when you open the app. The server address is pre-filled, and your key is stored securely and kept across app updates.")
+                }
+
+                Section {
+                    Toggle(isOn: Binding(
+                        get: { lock.enabled },
+                        set: { lock.setEnabled($0) }
+                    )) {
+                        Label("Require \(lock.biometryLabel) to open", systemImage: "lock.fill")
+                    }
+                    .disabled(!lock.canAuthenticate)
+                } header: {
+                    Text("Security")
+                } footer: {
+                    Text(lock.canAuthenticate
+                         ? "Locks the app when you open it or return to it after a couple of minutes away, protecting the saved key and customer details."
+                         : "Set a device passcode (and Face ID / Touch ID) in iOS Settings to use this.")
                 }
 
                 Section {
