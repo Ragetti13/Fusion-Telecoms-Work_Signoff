@@ -31,6 +31,8 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Face ID unlocks Field Ops to protect your saved sign-off key and customer details.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your current location is used to automatically fill in the site address on work orders.</string>
 	<key>UIApplicationSceneManifest</key>
