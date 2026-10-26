@@ -71,6 +71,7 @@ class WorkOrderStore: ObservableObject {
     }
 
     func delete(ids: [UUID]) {
+        for id in ids { PhotoStore.deleteAll(for: id) }
         workOrders.removeAll { ids.contains($0.id) }
         save()
     }

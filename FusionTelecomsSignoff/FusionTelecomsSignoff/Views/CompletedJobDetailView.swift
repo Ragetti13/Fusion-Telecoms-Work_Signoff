@@ -43,6 +43,24 @@ struct CompletedJobDetailView: View {
                     }
                 }
 
+                let photos = workOrder.photos
+                if !photos.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Install Photos")
+                            .font(.headline)
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                            ForEach(Array(photos.enumerated()), id: \.offset) { _, image in
+                                Image(uiImage: image)
+                                    .resizable().scaledToFill()
+                                    .frame(height: 100)
+                                    .frame(maxWidth: .infinity)
+                                    .clipped()
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
+                    }
+                }
+
                 Button(action: exportPDF) {
                     Label("Export as PDF", systemImage: "square.and.arrow.up")
                         .frame(maxWidth: .infinity)

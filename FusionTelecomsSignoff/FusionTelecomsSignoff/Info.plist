@@ -31,6 +31,8 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>The camera is used to attach install photos to a job's completion certificate.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Face ID unlocks Field Ops to protect your saved sign-off key and customer details.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
