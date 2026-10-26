@@ -34,7 +34,12 @@ struct FusionTelecomsSignoffApp: App {
             case .active:
                 lock.appBecameActive()
                 // Don't sync behind the lock screen.
-                if !lock.isLocked { Task { await store.syncRemoteJobs() } }
+                if !lock.isLocked {
+                    Task {
+                        await store.syncRemoteJobs()
+                        await store.flushPendingCompletions()
+                    }
+                }
             case .background:
                 lock.appEnteredBackground()
             default:
