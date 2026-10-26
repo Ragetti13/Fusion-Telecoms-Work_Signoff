@@ -84,6 +84,12 @@ struct JobListView: View {
 
     private var jobList: some View {
         List {
+            if !store.pendingCompletions.isEmpty {
+                Section {
+                    pendingSyncBanner
+                }
+            }
+
             if !pendingJobs.isEmpty {
                 Section {
                     ForEach(pendingJobs) { job in
@@ -118,6 +124,26 @@ struct JobListView: View {
         }
         .listStyle(.insetGrouped)
         .refreshable { await store.refreshProvisioningJobs() }
+    }
+
+    private var pendingSyncBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "arrow.triangle.2.circlepath.icloud")
+                .font(.title3)
+                .foregroundStyle(Color.brandPink)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(store.pendingCompletions.count) \(store.pendingCompletions.count == 1 ? "sign-off" : "sign-offs") waiting to sync")
+                    .font(.subheadline).fontWeight(.semibold)
+                Text("Sent to the CRM automatically when you're back online.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Retry") { Task { await store.flushPendingCompletions() } }
+                .font(.subheadline.weight(.semibold))
+                .buttonStyle(.borderless)
+                .tint(.brandPink)
+        }
+        .padding(.vertical, 4)
     }
 
     private var emptyState: some View {

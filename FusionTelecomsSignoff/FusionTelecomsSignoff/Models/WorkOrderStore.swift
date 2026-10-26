@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import Security
+import Network
 
 class WorkOrderStore: ObservableObject {
     /// Pre-filled server URL so technicians don't have to type it. The URL
@@ -15,14 +16,22 @@ class WorkOrderStore: ObservableObject {
     @Published var isSyncing: Bool = false
     // Set when a manual Provisioning refresh fails, for a one-off alert.
     @Published var refreshErrorMessage: String?
+    // Completion reports waiting to reach the server (e.g. a sign-off done with
+    // no signal). Flushed on reconnect / foreground.
+    @Published var pendingCompletions: [PendingCompletion] = []
 
     private let ordersKey = "WorkOrders"
     private let techKey = "TechnicianName"
     private let apiURLKey = "SignoffAPIURL"
     private let apiKeyKey = "SignoffAPIKey"
+    private let pendingKey = "PendingCompletions"
+
+    private let networkMonitor = NetworkMonitor()
+    private var isFlushing = false
 
     init() {
         load()
+        loadPending()
         technicianName = UserDefaults.standard.string(forKey: techKey) ?? ""
         // Server URL: pre-fill the production default on first run, but respect a
         // saved value thereafter (object(forKey:) is nil only before the first save).
@@ -40,6 +49,12 @@ class WorkOrderStore: ObservableObject {
             KeychainStore.write(legacy, for: apiKeyKey)
             UserDefaults.standard.removeObject(forKey: apiKeyKey)
         }
+
+        // Drain the completion queue whenever connectivity returns.
+        networkMonitor.onReconnect = { [weak self] in
+            Task { await self?.flushPendingCompletions() }
+        }
+        networkMonitor.start()
     }
 
     func save() {
@@ -87,6 +102,9 @@ class WorkOrderStore: ObservableObject {
             baseURL: signoffAPIURL, apiKey: signoffAPIKey
         ) else { return }
         await mergeAndClaim(jobs)
+        // A successful fetch means we're online — a good moment to drain queued
+        // completion reports.
+        await flushPendingCompletions()
     }
 
     /// Manual Refresh: pull jobs currently in the CRM's Provisioning stage.
@@ -133,8 +151,10 @@ class WorkOrderStore: ObservableObject {
     }
 
     /// Report a Quote Builder job as signed off so the server can mark its CRM
-    /// opportunity live. Best-effort: does nothing for locally-created jobs (no
-    /// remoteJobId) or when sync isn't configured, and never throws.
+    /// opportunity live. Durable: the report is queued first (survives app kill
+    /// and no signal), then an immediate send is attempted; anything still
+    /// queued is retried on reconnect / next foreground. No-op for locally
+    /// created jobs (no remoteJobId).
     @MainActor
     func reportCompletion(
         for workOrder: WorkOrder,
@@ -142,16 +162,97 @@ class WorkOrderStore: ObservableObject {
         installType: InstallType,
         signedByCustomer: Bool
     ) async {
-        guard let jobId = workOrder.remoteJobId,
-              !signoffAPIURL.isEmpty, !signoffAPIKey.isEmpty else { return }
-        try? await SignoffJobsAPI.completeJob(
-            id: jobId,
+        guard let jobId = workOrder.remoteJobId else { return }
+        pendingCompletions.append(PendingCompletion(
+            id: UUID(),
+            remoteJobId: jobId,
             goLiveDate: SignoffJobsAPI.isoDay(goLiveDate),
-            installType: installType,
+            installTypeRaw: installType.rawValue,
             signedByCustomer: signedByCustomer,
-            baseURL: signoffAPIURL,
-            apiKey: signoffAPIKey
-        )
+            jobReference: workOrder.jobReference,
+            queuedAt: Date()
+        ))
+        persistPending()
+        await flushPendingCompletions()
+    }
+
+    /// Try to send every queued completion report, removing each as it succeeds.
+    /// Stops on the first failure (still offline / server down) and leaves the
+    /// rest queued for the next attempt.
+    @MainActor
+    func flushPendingCompletions() async {
+        guard !signoffAPIURL.isEmpty, !signoffAPIKey.isEmpty, !isFlushing else { return }
+        guard !pendingCompletions.isEmpty else { return }
+        isFlushing = true
+        defer { isFlushing = false }
+
+        for item in pendingCompletions {
+            guard let installType = InstallType(rawValue: item.installTypeRaw) else {
+                // Corrupt entry — drop it rather than wedge the queue.
+                pendingCompletions.removeAll { $0.id == item.id }
+                persistPending()
+                continue
+            }
+            do {
+                try await SignoffJobsAPI.completeJob(
+                    id: item.remoteJobId,
+                    goLiveDate: item.goLiveDate,
+                    installType: installType,
+                    signedByCustomer: item.signedByCustomer,
+                    baseURL: signoffAPIURL,
+                    apiKey: signoffAPIKey
+                )
+                pendingCompletions.removeAll { $0.id == item.id }
+                persistPending()
+            } catch {
+                break // still unreachable — keep the remainder queued
+            }
+        }
+    }
+
+    private func loadPending() {
+        guard let data = UserDefaults.standard.data(forKey: pendingKey),
+              let decoded = try? JSONDecoder().decode([PendingCompletion].self, from: data)
+        else { return }
+        pendingCompletions = decoded
+    }
+
+    private func persistPending() {
+        if let data = try? JSONEncoder().encode(pendingCompletions) {
+            UserDefaults.standard.set(data, forKey: pendingKey)
+        }
+    }
+}
+
+/// A completion report awaiting delivery to the server.
+struct PendingCompletion: Codable, Identifiable {
+    let id: UUID
+    let remoteJobId: Int
+    let goLiveDate: String      // yyyy-MM-dd
+    let installTypeRaw: String  // InstallType rawValue
+    let signedByCustomer: Bool
+    let jobReference: String
+    let queuedAt: Date
+}
+
+/// Watches connectivity and fires `onReconnect` when the network comes back,
+/// so queued completion reports can be flushed promptly.
+final class NetworkMonitor {
+    private let monitor = NWPathMonitor()
+    private let queue = DispatchQueue(label: "FieldOps.NetworkMonitor")
+    private var wasSatisfied = true
+    var onReconnect: (() -> Void)?
+
+    func start() {
+        monitor.pathUpdateHandler = { [weak self] path in
+            guard let self else { return }
+            let satisfied = path.status == .satisfied
+            if satisfied && !self.wasSatisfied {
+                DispatchQueue.main.async { self.onReconnect?() }
+            }
+            self.wasSatisfied = satisfied
+        }
+        monitor.start(queue: queue)
     }
 }
 
