@@ -121,6 +121,27 @@ struct PDFGenerator {
 
         y += 14
 
+        // Installation details (only if captured)
+        if workOrder.hasInstallDetails {
+            NSAttributedString(string: "Installation Details", attributes: [
+                .font: UIFont.systemFont(ofSize: 13, weight: .semibold),
+                .foregroundColor: UIColor.black
+            ]).draw(at: CGPoint(x: margin, y: y))
+            y += 20
+
+            var installRows: [(String, String)] = []
+            if let serial = workOrder.serialNumber, !serial.isEmpty { installRows.append(("Router Serial:", serial)) }
+            if let mac = workOrder.macAddress, !mac.isEmpty { installRows.append(("MAC Address:", mac)) }
+            if let r = WorkOrder.speedText(down: workOrder.routerDownMbps, up: workOrder.routerUpMbps) { installRows.append(("Router Speed:", r)) }
+            if let w = WorkOrder.speedText(down: workOrder.wifiDownMbps, up: workOrder.wifiUpMbps) { installRows.append(("Wi-Fi Speed:", w)) }
+            for (label, value) in installRows {
+                NSAttributedString(string: label, attributes: labelAttrs).draw(at: CGPoint(x: margin, y: y))
+                NSAttributedString(string: value, attributes: valueAttrs).draw(at: CGPoint(x: margin + 130, y: y))
+                y += 20
+            }
+            y += 14
+        }
+
         // Work description
         let sectionAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 13, weight: .semibold),

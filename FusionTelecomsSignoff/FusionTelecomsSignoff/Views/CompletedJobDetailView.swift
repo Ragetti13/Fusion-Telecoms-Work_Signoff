@@ -26,6 +26,29 @@ struct CompletedJobDetailView: View {
 
                 JobSummaryCard(workOrder: workOrder)
 
+                if workOrder.hasInstallDetails {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Installation Details").font(.headline)
+                        if let serial = workOrder.serialNumber, !serial.isEmpty {
+                            DetailRow(label: "Serial", value: serial)
+                        }
+                        if let mac = workOrder.macAddress, !mac.isEmpty {
+                            DetailRow(label: "MAC", value: mac)
+                        }
+                        if let r = WorkOrder.speedText(down: workOrder.routerDownMbps, up: workOrder.routerUpMbps) {
+                            DetailRow(label: "Router", value: r)
+                        }
+                        if let w = WorkOrder.speedText(down: workOrder.wifiDownMbps, up: workOrder.wifiUpMbps) {
+                            DetailRow(label: "Wi-Fi", value: w)
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(.systemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .shadow(color: .black.opacity(0.06), radius: 6, x: 0, y: 2)
+                }
+
                 if let image = workOrder.signatureImage {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Customer Signature")
