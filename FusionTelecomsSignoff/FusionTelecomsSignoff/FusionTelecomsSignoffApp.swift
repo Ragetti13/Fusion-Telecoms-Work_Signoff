@@ -39,7 +39,7 @@ struct FusionTelecomsSignoffApp: App {
             }
             .environmentObject(lock)
         }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
                 lock.appBecameActive()
