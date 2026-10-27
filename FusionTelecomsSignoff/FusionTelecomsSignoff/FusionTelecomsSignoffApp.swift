@@ -1,11 +1,15 @@
 import SwiftUI
+import UIKit
+import UserNotifications
 import LocalAuthentication
 
 @main
 struct FusionTelecomsSignoffApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var store = WorkOrderStore()
     @StateObject private var lock = AppLockManager()
     @Environment(\.scenePhase) private var scenePhase
+    @State private var pushRequested = false
 
     var body: some Scene {
         WindowGroup {
@@ -13,6 +17,12 @@ struct FusionTelecomsSignoffApp: App {
                 ContentView()
                     .environmentObject(store)
                     .tint(.brandPink)
+                    .onAppear {
+                        // Forward APNs tokens the AppDelegate receives to the server.
+                        PushService.onToken = { token in
+                            Task { await store.registerPushToken(token) }
+                        }
+                    }
                     .onOpenURL { url in
                         if let prefill = DeepLinkHandler.parse(url: url) {
                             store.pendingPrefill = prefill
@@ -29,7 +39,7 @@ struct FusionTelecomsSignoffApp: App {
             }
             .environmentObject(lock)
         }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
                 lock.appBecameActive()
@@ -39,12 +49,47 @@ struct FusionTelecomsSignoffApp: App {
                         await store.syncRemoteJobs()
                         await store.flushPendingCompletions()
                     }
+                    // Ask for push permission + register once per launch, once
+                    // the server is configured and the app is unlocked.
+                    if !pushRequested && !store.signoffAPIURL.isEmpty && !store.signoffAPIKey.isEmpty {
+                        pushRequested = true
+                        PushService.requestAuthorizationAndRegister()
+                    }
                 }
             case .background:
                 lock.appEnteredBackground()
             default:
                 break
             }
+        }
+    }
+}
+
+/// Receives the APNs device token and forwards it via PushService.
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let hex = deviceToken.map { String(format: "%02x", $0) }.joined()
+        PushService.onToken?(hex)
+    }
+
+    func application(_ application: UIApplication,
+                     didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        // Typically the Push Notifications capability isn't enabled (e.g. a free
+        // personal team). Nothing to do — the rest of the app is unaffected.
+    }
+}
+
+/// Requests notification permission, registers for remote notifications, and
+/// hands the resulting token to a sink the app sets (which uploads it).
+enum PushService {
+    /// Set by the app; called with the hex APNs token when one arrives.
+    static var onToken: ((String) -> Void)?
+
+    static func requestAuthorizationAndRegister() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            guard granted else { return }
+            DispatchQueue.main.async { UIApplication.shared.registerForRemoteNotifications() }
         }
     }
 }
