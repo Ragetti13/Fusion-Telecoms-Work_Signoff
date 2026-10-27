@@ -18,7 +18,7 @@ struct PDFGenerator {
     // Lay out install photos on fresh A4 pages, four per page in a 2×2 grid.
     private static func drawPhotoPages(_ photos: [UIImage], in page: CGRect, ctx: UIGraphicsPDFRendererContext) {
         let margin: CGFloat = 50
-        let brandPink = UIColor(red: 0.929, green: 0.059, blue: 0.400, alpha: 1.0)
+        let brandPink = UIColor(red: 0.984, green: 0.0, blue: 0.396, alpha: 1.0)
         let perPage = 4
         let columns = 2
         let gutter: CGFloat = 16
@@ -75,7 +75,7 @@ struct PDFGenerator {
         var y: CGFloat = margin
 
         // Header — Fusion logo + certificate title
-        let brandPink = UIColor(red: 0.929, green: 0.059, blue: 0.400, alpha: 1.0)
+        let brandPink = UIColor(red: 0.984, green: 0.0, blue: 0.396, alpha: 1.0)
         let logoSize: CGFloat = 58
         if let logo = UIImage(named: "Logo") {
             logo.draw(in: CGRect(x: margin, y: y, width: logoSize, height: logoSize))

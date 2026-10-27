@@ -12,7 +12,7 @@ extension Color {
     }
 
     // Fusion Telecoms brand
-    static let brandPink = Color(hex: 0xED0F66)   // logo tile magenta
+    static let brandPink = Color(hex: 0xFB0065)   // Fusion Telecoms brand pink
     static let brandInk  = Color(hex: 0x1E242F)   // dark charcoal text
 
     // Accent dots from the logo's atom mark — for small status touches.
