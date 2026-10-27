@@ -22,7 +22,7 @@ struct JobListView: View {
                 .sheet(isPresented: $showingNewJob, onDismiss: { store.pendingPrefill = nil }) {
                     NewJobView(prefill: store.pendingPrefill)
                 }
-                .onChange(of: store.pendingPrefill != nil) { hasPrefill in
+                .onChange(of: store.pendingPrefill != nil) { _, hasPrefill in
                     if hasPrefill { showingNewJob = true }
                 }
                 .sheet(isPresented: $showingSettings) {

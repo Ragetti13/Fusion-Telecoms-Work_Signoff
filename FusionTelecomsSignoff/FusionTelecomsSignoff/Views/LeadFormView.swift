@@ -86,10 +86,10 @@ struct LeadFormView: View {
                 .keyboardType(.emailAddress)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
-                .onChange(of: email) { _ in lookup = nil }
+                .onChange(of: email) { lookup = nil }
             TextField("Phone", text: $phone)
                 .keyboardType(.phonePad)
-                .onChange(of: phone) { _ in lookup = nil }
+                .onChange(of: phone) { lookup = nil }
             TextField("Address", text: $address, axis: .vertical)
                 .lineLimit(2...4)
         }

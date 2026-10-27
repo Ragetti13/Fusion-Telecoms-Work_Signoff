@@ -66,7 +66,7 @@ struct PriceBookView: View {
             }
             .searchable(text: $query, prompt: "Search products")
             .onSubmit(of: .search) { Task { await load() } }
-            .onChange(of: category) { _ in Task { await load() } }
+            .onChange(of: category) { Task { await load() } }
             .refreshable { await load() }
             .task { if !loadedOnce { await load() } }
             .sheet(isPresented: $showingAdd) {
