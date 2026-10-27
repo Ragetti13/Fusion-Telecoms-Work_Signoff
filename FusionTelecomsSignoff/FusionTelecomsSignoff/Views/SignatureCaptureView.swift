@@ -130,7 +130,7 @@ struct SignatureCaptureView: View {
             }
             .ignoresSafeArea()
         }
-        .onChange(of: pickerItems) { items in
+        .onChange(of: pickerItems) { _, items in
             guard !items.isEmpty else { return }
             Task {
                 for item in items {
