@@ -171,7 +171,13 @@ class WorkOrderStore: ObservableObject {
             installTypeRaw: installType.rawValue,
             signedByCustomer: signedByCustomer,
             jobReference: workOrder.jobReference,
-            queuedAt: Date()
+            queuedAt: Date(),
+            serialNumber: workOrder.serialNumber,
+            macAddress: workOrder.macAddress,
+            routerDownMbps: workOrder.routerDownMbps,
+            routerUpMbps: workOrder.routerUpMbps,
+            wifiDownMbps: workOrder.wifiDownMbps,
+            wifiUpMbps: workOrder.wifiUpMbps
         ))
         persistPending()
         await flushPendingCompletions()
@@ -200,6 +206,14 @@ class WorkOrderStore: ObservableObject {
                     goLiveDate: item.goLiveDate,
                     installType: installType,
                     signedByCustomer: item.signedByCustomer,
+                    install: SignoffInstall(
+                        serialNumber: item.serialNumber,
+                        macAddress: item.macAddress,
+                        routerDownMbps: item.routerDownMbps,
+                        routerUpMbps: item.routerUpMbps,
+                        wifiDownMbps: item.wifiDownMbps,
+                        wifiUpMbps: item.wifiUpMbps
+                    ),
                     baseURL: signoffAPIURL,
                     apiKey: signoffAPIKey
                 )
@@ -248,6 +262,13 @@ struct PendingCompletion: Codable, Identifiable {
     let signedByCustomer: Bool
     let jobReference: String
     let queuedAt: Date
+    // Installation details (optional; added later — decode as nil when absent).
+    var serialNumber: String?
+    var macAddress: String?
+    var routerDownMbps: Double?
+    var routerUpMbps: Double?
+    var wifiDownMbps: Double?
+    var wifiUpMbps: Double?
 }
 
 /// Watches connectivity and fires `onReconnect` when the network comes back,
