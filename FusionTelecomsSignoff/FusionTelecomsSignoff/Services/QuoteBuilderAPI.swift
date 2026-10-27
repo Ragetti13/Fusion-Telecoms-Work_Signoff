@@ -143,6 +143,20 @@ enum QuoteBuilderAPI {
         URL(string: "\(trim(baseURL))/quotes/new?customerId=\(customerId)")
     }
 
+    /// Register this device's APNs token so the server can push new-job alerts.
+    static func registerDevice(token: String, baseURL: String, apiKey: String) async throws {
+        guard let url = URL(string: "\(trim(baseURL))/api/devices") else { throw URLError(.badURL) }
+        var request = URLRequest(url: url, timeoutInterval: 20)
+        request.httpMethod = "POST"
+        request.setValue(apiKey, forHTTPHeaderField: "X-Signoff-Key")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["token": token, "platform": "ios"])
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw apiError(data: data, response: response)
+        }
+    }
+
     static func searchPriceBook(query: String, category: String?, baseURL: String, apiKey: String) async throws -> [PriceBookItem] {
         var comps = URLComponents(string: "\(trim(baseURL))/api/price-book")
         var qs: [URLQueryItem] = []

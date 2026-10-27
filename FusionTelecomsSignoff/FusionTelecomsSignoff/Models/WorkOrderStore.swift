@@ -28,6 +28,7 @@ class WorkOrderStore: ObservableObject {
 
     private let networkMonitor = NetworkMonitor()
     private var isFlushing = false
+    private var lastRegisteredPushToken: String?
 
     init() {
         load()
@@ -207,6 +208,20 @@ class WorkOrderStore: ObservableObject {
             } catch {
                 break // still unreachable — keep the remainder queued
             }
+        }
+    }
+
+    /// Send this device's APNs token to the server so it can push new-job
+    /// alerts. Deduped within a session; the server upsert is idempotent.
+    @MainActor
+    func registerPushToken(_ token: String) async {
+        guard !signoffAPIURL.isEmpty, !signoffAPIKey.isEmpty else { return }
+        guard token != lastRegisteredPushToken else { return }
+        do {
+            try await QuoteBuilderAPI.registerDevice(token: token, baseURL: signoffAPIURL, apiKey: signoffAPIKey)
+            lastRegisteredPushToken = token
+        } catch {
+            // Try again next launch.
         }
     }
 
