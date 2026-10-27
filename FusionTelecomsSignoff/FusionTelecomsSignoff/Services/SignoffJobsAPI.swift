@@ -28,6 +28,16 @@ enum InstallType: String, CaseIterable, Identifiable {
     var label: String { rawValue }
 }
 
+/// Installation details sent with a completion report (all optional).
+struct SignoffInstall {
+    var serialNumber: String? = nil
+    var macAddress: String? = nil
+    var routerDownMbps: Double? = nil
+    var routerUpMbps: Double? = nil
+    var wifiDownMbps: Double? = nil
+    var wifiUpMbps: Double? = nil
+}
+
 enum SignoffJobsAPI {
     static func fetchPending(baseURL: String, apiKey: String) async throws -> [RemoteJob] {
         guard let url = URL(string: "\(baseURL.trimmingCharacters(in: .init(charactersIn: "/")))/api/signoff-jobs/pending") else {
@@ -80,6 +90,7 @@ enum SignoffJobsAPI {
         goLiveDate: String,
         installType: InstallType,
         signedByCustomer: Bool,
+        install: SignoffInstall = SignoffInstall(),
         baseURL: String,
         apiKey: String
     ) async throws {
@@ -90,11 +101,17 @@ enum SignoffJobsAPI {
         request.httpMethod = "PATCH"
         request.setValue(apiKey, forHTTPHeaderField: "X-Signoff-Key")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "goLiveDate": goLiveDate,
             "installType": installType.rawValue,
             "signedByCustomer": signedByCustomer,
         ]
+        if let s = install.serialNumber, !s.isEmpty { body["serialNumber"] = s }
+        if let m = install.macAddress, !m.isEmpty { body["macAddress"] = m }
+        if let v = install.routerDownMbps { body["routerDownMbps"] = v }
+        if let v = install.routerUpMbps { body["routerUpMbps"] = v }
+        if let v = install.wifiDownMbps { body["wifiDownMbps"] = v }
+        if let v = install.wifiUpMbps { body["wifiUpMbps"] = v }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         let (_, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
