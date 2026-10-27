@@ -20,6 +20,14 @@ struct WorkOrder: Identifiable, Codable {
     // Kept as filenames, not inline data, so UserDefaults stays small.
     var photoFilenames: [String]
 
+    // Installation details captured at sign-off (all optional).
+    var serialNumber: String?
+    var macAddress: String?
+    var routerDownMbps: Double?
+    var routerUpMbps: Double?
+    var wifiDownMbps: Double?
+    var wifiUpMbps: Double?
+
     init(
         id: UUID = UUID(),
         jobReference: String = "",
@@ -32,7 +40,13 @@ struct WorkOrder: Identifiable, Codable {
         signatureData: Data? = nil,
         isSigned: Bool = false,
         remoteJobId: Int? = nil,
-        photoFilenames: [String] = []
+        photoFilenames: [String] = [],
+        serialNumber: String? = nil,
+        macAddress: String? = nil,
+        routerDownMbps: Double? = nil,
+        routerUpMbps: Double? = nil,
+        wifiDownMbps: Double? = nil,
+        wifiUpMbps: Double? = nil
     ) {
         self.id = id
         self.jobReference = jobReference
@@ -46,6 +60,33 @@ struct WorkOrder: Identifiable, Codable {
         self.isSigned = isSigned
         self.remoteJobId = remoteJobId
         self.photoFilenames = photoFilenames
+        self.serialNumber = serialNumber
+        self.macAddress = macAddress
+        self.routerDownMbps = routerDownMbps
+        self.routerUpMbps = routerUpMbps
+        self.wifiDownMbps = wifiDownMbps
+        self.wifiUpMbps = wifiUpMbps
+    }
+
+    /// True when any installation detail has been captured.
+    var hasInstallDetails: Bool {
+        (serialNumber?.isEmpty == false) || (macAddress?.isEmpty == false)
+            || routerDownMbps != nil || routerUpMbps != nil
+            || wifiDownMbps != nil || wifiUpMbps != nil
+    }
+
+    /// "12.3 / 4.5 Mbps" (down/up), or a single value, or nil if neither set.
+    static func speedText(down: Double?, up: Double?) -> String? {
+        switch (down, up) {
+        case let (d?, u?): return "\(clean(d)) ↓ / \(clean(u)) ↑ Mbps"
+        case let (d?, nil): return "\(clean(d)) ↓ Mbps"
+        case let (nil, u?): return "\(clean(u)) ↑ Mbps"
+        default: return nil
+        }
+    }
+
+    private static func clean(_ value: Double) -> String {
+        value == value.rounded() ? String(Int(value)) : String(format: "%.1f", value)
     }
 
     var signatureImage: UIImage? {
@@ -67,6 +108,7 @@ struct WorkOrder: Identifiable, Codable {
         case id, jobReference, customerName, customerAddress, customerEmail
         case workDescription, completedDate, technicianName, signatureData, isSigned
         case remoteJobId, photoFilenames
+        case serialNumber, macAddress, routerDownMbps, routerUpMbps, wifiDownMbps, wifiUpMbps
     }
 
     init(from decoder: Decoder) throws {
@@ -83,6 +125,12 @@ struct WorkOrder: Identifiable, Codable {
         isSigned       = try  c.decode(Bool.self,   forKey: .isSigned)
         remoteJobId    = try? c.decode(Int.self,    forKey: .remoteJobId)
         photoFilenames = (try? c.decode([String].self, forKey: .photoFilenames)) ?? []
+        serialNumber   = try? c.decode(String.self, forKey: .serialNumber)
+        macAddress     = try? c.decode(String.self, forKey: .macAddress)
+        routerDownMbps = try? c.decode(Double.self, forKey: .routerDownMbps)
+        routerUpMbps   = try? c.decode(Double.self, forKey: .routerUpMbps)
+        wifiDownMbps   = try? c.decode(Double.self, forKey: .wifiDownMbps)
+        wifiUpMbps     = try? c.decode(Double.self, forKey: .wifiUpMbps)
     }
 }
 

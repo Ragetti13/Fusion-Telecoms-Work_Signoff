@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import PhotosUI
+import VisionKit
 import MessageUI
 
 private let supportEmail = "support@fusion-telecoms.com"
@@ -22,6 +23,20 @@ struct SignatureCaptureView: View {
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var showingCamera = false
 
+    // Installation details
+    @State private var serialNumber = ""
+    @State private var macAddress = ""
+    @State private var routerDown = ""
+    @State private var routerUp = ""
+    @State private var wifiDown = ""
+    @State private var wifiUp = ""
+    @State private var scanTarget: ScanTarget?
+
+    enum ScanTarget: Identifiable {
+        case serial, mac
+        var id: Int { self == .serial ? 0 : 1 }
+    }
+
     // "Customer not available to sign" flow
     @State private var showingUnavailable = false
     @State private var unavailableGoLiveDate = Date()
@@ -38,6 +53,8 @@ struct SignatureCaptureView: View {
         ScrollView {
             VStack(spacing: 20) {
                 JobSummaryCard(workOrder: workOrder)
+
+                installDetailsCard
 
                 photosCard
 
@@ -103,6 +120,15 @@ struct SignatureCaptureView: View {
         .fullScreenCover(isPresented: $showingCamera) {
             CameraPicker { image in photos.append(image) }
                 .ignoresSafeArea()
+        }
+        .sheet(item: $scanTarget) { target in
+            BarcodeScanner { code in
+                switch target {
+                case .serial: serialNumber = code
+                case .mac: macAddress = code
+                }
+            }
+            .ignoresSafeArea()
         }
         .onChange(of: pickerItems) { items in
             guard !items.isEmpty else { return }
@@ -175,6 +201,73 @@ struct SignatureCaptureView: View {
         }
     }
 
+    // MARK: - Installation details
+
+    private var installDetailsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Installation Details").font(.headline)
+            Text("Added to the completion certificate.")
+                .font(.subheadline).foregroundStyle(.secondary)
+
+            labeledField("Router Serial", text: $serialNumber, scan: .serial)
+            labeledField("MAC Address", text: $macAddress, scan: .mac)
+
+            Text("Router speed (Mbps)").font(.subheadline).fontWeight(.medium)
+            HStack(spacing: 10) {
+                speedField("Download", text: $routerDown)
+                speedField("Upload", text: $routerUp)
+            }
+            Text("Wi-Fi speed (Mbps)").font(.subheadline).fontWeight(.medium)
+            HStack(spacing: 10) {
+                speedField("Download", text: $wifiDown)
+                speedField("Upload", text: $wifiUp)
+            }
+        }
+        .padding()
+        .background(Color(.systemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func labeledField(_ title: String, text: Binding<String>, scan: ScanTarget) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            HStack {
+                TextField(title, text: text)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.characters)
+                if BarcodeScanner.isAvailable {
+                    Button { scanTarget = scan } label: {
+                        Image(systemName: "barcode.viewfinder")
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.brandPink)
+                }
+            }
+        }
+    }
+
+    private func speedField(_ placeholder: String, text: Binding<String>) -> some View {
+        TextField(placeholder, text: text)
+            .keyboardType(.decimalPad)
+            .textFieldStyle(.roundedBorder)
+    }
+
+    private func applyInstallDetails(to order: inout WorkOrder) {
+        func text(_ s: String) -> String? {
+            let t = s.trimmingCharacters(in: .whitespaces)
+            return t.isEmpty ? nil : t
+        }
+        func number(_ s: String) -> Double? {
+            Double(s.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: "."))
+        }
+        order.serialNumber = text(serialNumber)
+        order.macAddress = text(macAddress)
+        order.routerDownMbps = number(routerDown)
+        order.routerUpMbps = number(routerUp)
+        order.wifiDownMbps = number(wifiDown)
+        order.wifiUpMbps = number(wifiUp)
+    }
+
     // MARK: - Photos
 
     private var photosCard: some View {
@@ -242,6 +335,7 @@ struct SignatureCaptureView: View {
         updated.signatureData = image.pngData()
         updated.isSigned = true
         updated.photoFilenames = PhotoStore.save(photos, for: updated.id)
+        applyInstallDetails(to: &updated)
         store.update(updated)
         signedOrder = updated
 
@@ -280,6 +374,7 @@ struct SignatureCaptureView: View {
         var updated = workOrder
         updated.isSigned = true
         updated.photoFilenames = PhotoStore.save(photos, for: updated.id)
+        applyInstallDetails(to: &updated)
         store.update(updated)
         signedOrder = updated
 
@@ -345,6 +440,46 @@ struct CameraPicker: UIViewControllerRepresentable {
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             parent.dismiss()
+        }
+    }
+}
+
+/// Live barcode scanner (VisionKit) for capturing serials / MAC labels.
+/// Tap a detected code to use it. Falls back to manual entry where the device
+/// doesn't support scanning (the Scan button is hidden via `isAvailable`).
+struct BarcodeScanner: UIViewControllerRepresentable {
+    let onScan: (String) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    static var isAvailable: Bool {
+        DataScannerViewController.isSupported && DataScannerViewController.isAvailable
+    }
+
+    func makeUIViewController(context: Context) -> DataScannerViewController {
+        let scanner = DataScannerViewController(
+            recognizedDataTypes: [.barcode()],
+            qualityLevel: .balanced,
+            isHighlightingEnabled: true
+        )
+        scanner.delegate = context.coordinator
+        return scanner
+    }
+
+    func updateUIViewController(_ controller: DataScannerViewController, context: Context) {
+        try? controller.startScanning()
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, DataScannerViewControllerDelegate {
+        let parent: BarcodeScanner
+        init(_ parent: BarcodeScanner) { self.parent = parent }
+
+        func dataScanner(_ dataScanner: DataScannerViewController, didTapOn item: RecognizedItem) {
+            if case let .barcode(barcode) = item, let text = barcode.payloadStringValue {
+                parent.onScan(text)
+                parent.dismiss()
+            }
         }
     }
 }
