@@ -66,7 +66,14 @@ struct FusionTelecomsSignoffApp: App {
 }
 
 /// Receives the APNs device token and forwards it via PushService.
-final class AppDelegate: NSObject, UIApplicationDelegate {
+final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        // Receive notifications even while the app is in the foreground.
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
+
     func application(_ application: UIApplication,
                      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let hex = deviceToken.map { String(format: "%02x", $0) }.joined()
@@ -77,6 +84,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         // Typically the Push Notifications capability isn't enabled (e.g. a free
         // personal team). Nothing to do — the rest of the app is unaffected.
+    }
+
+    // Show a banner + sound for a push that arrives while the app is open
+    // (otherwise iOS suppresses it in the foreground).
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .list, .sound])
     }
 }
 
