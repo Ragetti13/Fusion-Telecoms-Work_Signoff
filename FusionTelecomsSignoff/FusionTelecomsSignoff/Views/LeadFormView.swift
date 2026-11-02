@@ -287,7 +287,8 @@ struct SafariView: UIViewControllerRepresentable {
         let config = SFSafariViewController.Configuration()
         config.barCollapsingEnabled = true
         let controller = SFSafariViewController(url: url, configuration: config)
-        controller.preferredControlTintColor = UIColor(Color.brandPink)
+        // iOS 26 deprecated preferredControlTintColor — Safari tints its own
+        // controls to work with the system's background effects.
         return controller
     }
 
