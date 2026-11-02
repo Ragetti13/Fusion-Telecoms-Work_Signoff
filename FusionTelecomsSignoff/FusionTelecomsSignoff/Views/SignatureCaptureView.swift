@@ -6,11 +6,24 @@ import MessageUI
 
 private let supportEmail = "support@fusion-telecoms.com"
 
+/// An install photo with a stable identity, so SwiftUI tracks the right cell
+/// when photos are added or removed mid-list.
+struct CapturedPhoto: Identifiable {
+    let id = UUID()
+    let image: UIImage
+}
+
 struct SignatureCaptureView: View {
     let workOrder: WorkOrder
 
     @EnvironmentObject var store: WorkOrderStore
     @Environment(\.dismiss) var dismiss
+
+    /// The iPhone Duo inner display reports a regular horizontal size class
+    /// (as does iPad), so the job details and the signature sit side by side
+    /// there instead of stacking into one very long scroll.
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    private var isRegularWidth: Bool { horizontalSizeClass == .regular }
 
     @State private var signatureImage: UIImage?
     @State private var hasSignature = false
@@ -19,7 +32,7 @@ struct SignatureCaptureView: View {
     @State private var installType: InstallType = .inPerson
 
     // Install photos captured on-site
-    @State private var photos: [UIImage] = []
+    @State private var photos: [CapturedPhoto] = []
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var showingCamera = false
 
@@ -51,74 +64,39 @@ struct SignatureCaptureView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                JobSummaryCard(workOrder: workOrder)
-
-                installDetailsCard
-
-                photosCard
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Customer Signature")
-                        .font(.headline)
-                    Text("By signing below, I confirm that the above work has been completed to my satisfaction.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-
-                    Picker("Install Type", selection: $installType) {
-                        ForEach(InstallType.allCases) { type in
-                            Text(type.label).tag(type)
-                        }
+            if isRegularWidth {
+                // Two columns: paperwork on the left, signing on the right, so
+                // the customer can sign without the tech scrolling past it.
+                HStack(alignment: .top, spacing: Layout.gapSection) {
+                    VStack(spacing: Layout.gapSection) {
+                        JobSummaryCard(workOrder: workOrder)
+                        installDetailsCard
+                        photosCard
                     }
-                    .pickerStyle(.segmented)
+                    .frame(maxWidth: .infinity, alignment: .top)
 
-                    SignaturePad(signatureImage: $signatureImage, hasSignature: $hasSignature)
-                        .id(padID)
-                        .frame(height: 180)
-
-                    HStack {
-                        Button("Clear") {
-                            padID = UUID()
-                            signatureImage = nil
-                            hasSignature = false
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.red)
-
-                        Spacer()
-
-                        Button("Confirm Sign-Off") {
-                            showingConfirm = true
-                        }
-                        .brandPrimaryButton()
-                        .disabled(!hasSignature)
-                    }
-
-                    Divider()
-
-                    Button {
-                        unavailableGoLiveDate = Date()
-                        unavailableInstallType = .remote
-                        showingUnavailable = true
-                    } label: {
-                        Label("Customer not available to sign", systemImage: "person.fill.questionmark")
-                            .font(.subheadline)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.brandPink)
+                    signatureCard
+                        .frame(maxWidth: .infinity, alignment: .top)
                 }
                 .padding()
-                .background(Color(.systemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                VStack(spacing: Layout.gapSection) {
+                    JobSummaryCard(workOrder: workOrder)
+                    installDetailsCard
+                    photosCard
+                    signatureCard
+                }
+                .padding()
+                .readableColumn()
             }
-            .padding()
         }
+        .scrollDismissesKeyboard(.interactively)
+        .keyboardDoneButton()
         .navigationTitle("Get Signature")
         .navigationBarTitleDisplayMode(.inline)
         .brandNavigationBar()
         .fullScreenCover(isPresented: $showingCamera) {
-            CameraPicker { image in photos.append(image) }
+            CameraPicker { image in photos.append(CapturedPhoto(image: image)) }
                 .ignoresSafeArea()
         }
         .sheet(item: $scanTarget) { target in
@@ -136,7 +114,7 @@ struct SignatureCaptureView: View {
                 for item in items {
                     if let data = try? await item.loadTransferable(type: Data.self),
                        let image = UIImage(data: data) {
-                        photos.append(image)
+                        photos.append(CapturedPhoto(image: image))
                     }
                 }
                 pickerItems = []
@@ -201,6 +179,73 @@ struct SignatureCaptureView: View {
         }
     }
 
+    // MARK: - Signature
+
+    private var signatureCard: some View {
+        VStack(alignment: .leading, spacing: Layout.gap) {
+            Text("Customer Signature")
+                .font(.headline)
+            Text("By signing below, I confirm that the above work has been completed to my satisfaction.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Picker("Install Type", selection: $installType) {
+                ForEach(InstallType.allCases) { type in
+                    Text(type.label).tag(type)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            SignaturePad(signatureImage: $signatureImage, hasSignature: $hasSignature)
+                .id(padID)
+                .frame(height: Layout.signatureHeight(regularWidth: isRegularWidth))
+                .accessibilityLabel("Signature pad")
+                .accessibilityHint("Draw the customer's signature with your finger.")
+
+            HStack {
+                Button("Clear") {
+                    padID = UUID()
+                    signatureImage = nil
+                    hasSignature = false
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+                .disabled(!hasSignature)
+
+                Spacer()
+
+                Button("Confirm Sign-Off") {
+                    showingConfirm = true
+                }
+                .brandPrimaryButton()
+                .disabled(!hasSignature)
+            }
+
+            // Says why Confirm is greyed out, rather than leaving the tech to
+            // guess at a disabled button.
+            if !hasSignature {
+                Text("Ask the customer to sign above to enable sign-off.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Divider()
+
+            Button {
+                unavailableGoLiveDate = Date()
+                unavailableInstallType = .remote
+                showingUnavailable = true
+            } label: {
+                Label("Customer not available to sign", systemImage: "person.fill.questionmark")
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .tint(.brandPink)
+        }
+        .card()
+    }
+
     // MARK: - Installation details
 
     private var installDetailsCard: some View {
@@ -223,9 +268,7 @@ struct SignatureCaptureView: View {
                 speedField("Upload", text: $wifiUp)
             }
         }
-        .padding()
-        .background(Color(.systemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .card()
     }
 
     private func labeledField(_ title: String, text: Binding<String>, scan: ScanTarget) -> some View {
@@ -241,6 +284,7 @@ struct SignatureCaptureView: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(.brandPink)
+                    .accessibilityLabel("Scan \(title)")
                 }
             }
         }
@@ -286,14 +330,17 @@ struct SignatureCaptureView: View {
             if !photos.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(Array(photos.enumerated()), id: \.offset) { index, image in
+                        // Keyed by a stable id — indexing by `enumerated().offset`
+                        // made SwiftUI reuse the wrong cell when a middle photo
+                        // was removed.
+                        ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
                             ZStack(alignment: .topTrailing) {
-                                Image(uiImage: image)
+                                Image(uiImage: photo.image)
                                     .resizable().scaledToFill()
                                     .frame(width: 88, height: 88)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .clipShape(RoundedRectangle(cornerRadius: Layout.radiusSmall))
                                 Button {
-                                    photos.remove(at: index)
+                                    photos.removeAll { $0.id == photo.id }
                                 } label: {
                                     Image(systemName: "xmark.circle.fill")
                                         .symbolRenderingMode(.palette)
@@ -301,6 +348,7 @@ struct SignatureCaptureView: View {
                                         .font(.system(size: 20))
                                 }
                                 .padding(3)
+                                .accessibilityLabel("Remove photo \(index + 1)")
                             }
                         }
                     }
@@ -321,9 +369,7 @@ struct SignatureCaptureView: View {
                 .tint(.brandPink)
             }
         }
-        .padding()
-        .background(Color(.systemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .card()
     }
 
     // MARK: - Actions
@@ -334,10 +380,13 @@ struct SignatureCaptureView: View {
         var updated = workOrder
         updated.signatureData = image.pngData()
         updated.isSigned = true
-        updated.photoFilenames = PhotoStore.save(photos, for: updated.id)
+        updated.photoFilenames = PhotoStore.save(photos.map(\.image), for: updated.id)
         applyInstallDetails(to: &updated)
         store.update(updated)
         signedOrder = updated
+
+        // Confirms the sign-off landed without the tech having to read the screen.
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
 
         // Customer signed on-site today → report completion so the CRM
         // opportunity is marked live (go-live = today, install type as selected).
@@ -373,10 +422,12 @@ struct SignatureCaptureView: View {
     private func completeWithoutSignature() {
         var updated = workOrder
         updated.isSigned = true
-        updated.photoFilenames = PhotoStore.save(photos, for: updated.id)
+        updated.photoFilenames = PhotoStore.save(photos.map(\.image), for: updated.id)
         applyInstallDetails(to: &updated)
         store.update(updated)
         signedOrder = updated
+
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
 
         let goLive = unavailableGoLiveDate
         let installType = unavailableInstallType

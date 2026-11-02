@@ -52,6 +52,8 @@ struct LeadFormView: View {
                 submitSection
                 quoteSection
             }
+            .scrollDismissesKeyboard(.interactively)
+            .keyboardDoneButton()
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { BrandLogoLeading() }

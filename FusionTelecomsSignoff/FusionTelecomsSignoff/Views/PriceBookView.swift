@@ -62,6 +62,7 @@ struct PriceBookView: View {
                     Button { showingAdd = true } label: {
                         Image(systemName: "plus").foregroundStyle(.white)
                     }
+                    .accessibilityLabel("Add product")
                 }
             }
             .searchable(text: $query, prompt: "Search products")
@@ -304,6 +305,8 @@ struct AddProductView: View {
                     .brandPrimaryButton()
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
+            .keyboardDoneButton()
             .navigationTitle("New Product")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.visible, for: .navigationBar)

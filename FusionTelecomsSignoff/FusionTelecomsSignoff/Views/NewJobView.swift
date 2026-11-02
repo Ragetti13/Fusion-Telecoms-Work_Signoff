@@ -87,8 +87,16 @@ struct NewJobView: View {
                     }
                     .disabled(!isValid)
                     .brandPrimaryButton()
+                } footer: {
+                    // Says why Save is greyed out instead of leaving the tech
+                    // to work it out from the "*" markers alone.
+                    if !isValid {
+                        Text("Customer name and a description of the work completed are both required.")
+                    }
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
+            .keyboardDoneButton()
             .navigationTitle("New Job")
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()

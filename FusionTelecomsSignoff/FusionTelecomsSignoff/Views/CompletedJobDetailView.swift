@@ -6,9 +6,14 @@ struct CompletedJobDetailView: View {
     @State private var pdfURL: URL?
     @State private var showingShare = false
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    /// More photo columns where there's width for them (Duo inner display, iPad).
+    private var photoColumns: Int { horizontalSizeClass == .regular ? 5 : 3 }
+
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: Layout.gapSection) {
                 HStack {
                     Image(systemName: "checkmark.seal.fill")
                         .foregroundStyle(.green)
@@ -22,12 +27,12 @@ struct CompletedJobDetailView: View {
                 }
                 .padding()
                 .background(Color.green.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: Layout.radiusCard, style: .continuous))
 
                 JobSummaryCard(workOrder: workOrder)
 
                 if workOrder.hasInstallDetails {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Layout.gapTight) {
                         Text("Installation Details").font(.headline)
                         if let serial = workOrder.serialNumber, !serial.isEmpty {
                             DetailRow(label: "Serial", value: serial)
@@ -42,15 +47,11 @@ struct CompletedJobDetailView: View {
                             DetailRow(label: "Wi-Fi", value: w)
                         }
                     }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(.systemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .shadow(color: .black.opacity(0.06), radius: 6, x: 0, y: 2)
+                    .card()
                 }
 
                 if let image = workOrder.signatureImage {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Layout.gapTight) {
                         Text("Customer Signature")
                             .font(.headline)
 
@@ -58,27 +59,31 @@ struct CompletedJobDetailView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(maxHeight: 140)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color(.systemBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .shadow(color: .black.opacity(0.06), radius: 6, x: 0, y: 2)
+                            .accessibilityLabel("Customer signature")
+                            .card()
                     }
                 }
 
                 let photos = workOrder.photos
                 if !photos.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Layout.gapTight) {
                         Text("Install Photos")
                             .font(.headline)
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                            ForEach(Array(photos.enumerated()), id: \.offset) { _, image in
+                        LazyVGrid(
+                            columns: Array(
+                                repeating: GridItem(.flexible(), spacing: Layout.gapTight),
+                                count: photoColumns
+                            ),
+                            spacing: Layout.gapTight
+                        ) {
+                            ForEach(Array(photos.enumerated()), id: \.offset) { index, image in
                                 Image(uiImage: image)
                                     .resizable().scaledToFill()
                                     .frame(height: 100)
                                     .frame(maxWidth: .infinity)
                                     .clipped()
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .clipShape(RoundedRectangle(cornerRadius: Layout.radiusSmall))
+                                    .accessibilityLabel("Install photo \(index + 1) of \(photos.count)")
                             }
                         }
                     }
@@ -91,6 +96,7 @@ struct CompletedJobDetailView: View {
                 .brandPrimaryButton()
             }
             .padding()
+            .readableColumn()
         }
         .navigationTitle(workOrder.displayName)
         .navigationBarTitleDisplayMode(.inline)
