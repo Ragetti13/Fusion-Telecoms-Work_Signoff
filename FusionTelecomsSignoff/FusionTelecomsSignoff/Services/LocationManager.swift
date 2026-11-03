@@ -1,5 +1,6 @@
 import CoreLocation
 import Foundation
+import MapKit
 
 final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var isLocating = false
@@ -7,6 +8,9 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
 
     private let clManager = CLLocationManager()
     private var onAddress: ((String) -> Void)?
+
+    private static let deniedMessage = "Location access denied. Please enable it in Settings."
+    private static let lookupFailedMessage = "Could not determine location. Please enter the address manually."
 
     override init() {
         super.init()
@@ -25,7 +29,7 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
             isLocating = true
             clManager.requestLocation()
         default:
-            errorMessage = "Location access denied. Please enable it in Settings."
+            errorMessage = Self.deniedMessage
             onAddress = nil
         }
     }
@@ -38,7 +42,7 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
                 manager.requestLocation()
             }
         case .denied, .restricted:
-            errorMessage = "Location access denied. Please enable it in Settings."
+            errorMessage = Self.deniedMessage
             isLocating = false
             onAddress = nil
         default:
@@ -48,24 +52,66 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.first else { return }
-        isLocating = false
-        CLGeocoder().reverseGeocodeLocation(location) { [weak self] placemarks, _ in
-            DispatchQueue.main.async {
-                guard let self = self, let p = placemarks?.first else { return }
-                let parts: [String?] = [
-                    p.subThoroughfare, p.thoroughfare,
-                    p.locality, p.administrativeArea, p.postalCode
-                ]
-                let address = parts.compactMap { $0 }.joined(separator: ", ")
-                self.onAddress?(address)
-                self.onAddress = nil
+
+        // CLGeocoder was deprecated in iOS 26; MKReverseGeocodingRequest is the
+        // MapKit replacement. `isLocating` stays true until the lookup finishes,
+        // so the button keeps spinning for the whole round trip rather than
+        // going idle while the address is still on its way.
+        Task { [weak self] in
+            guard let request = MKReverseGeocodingRequest(location: location) else {
+                self?.finish(withError: Self.lookupFailedMessage)
+                return
+            }
+
+            do {
+                let mapItems = try await request.mapItems
+                guard let address = mapItems.compactMap(Self.singleLineAddress(for:)).first else {
+                    self?.finish(withError: Self.lookupFailedMessage)
+                    return
+                }
+                self?.deliver(address)
+            } catch {
+                self?.finish(withError: Self.lookupFailedMessage)
             }
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        isLocating = false
-        errorMessage = "Could not determine location. Please enter the address manually."
-        onAddress = nil
+        finish(withError: Self.lookupFailedMessage)
+    }
+
+    // MARK: - Helpers
+
+    /// The single-line postal address the Site Address field expects, e.g.
+    /// "12 High Street, Manchester M1 2AB". The country is left off, matching
+    /// what the old placemark-component formatting produced.
+    private static func singleLineAddress(for mapItem: MKMapItem) -> String? {
+        if let address = mapItem.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true),
+           !address.isEmpty {
+            return address
+        }
+        // Fall back to the full address, which does include the country.
+        if let fullAddress = mapItem.address?.fullAddress, !fullAddress.isEmpty {
+            return fullAddress
+        }
+        return nil
+    }
+
+    private func deliver(_ address: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.isLocating = false
+            self.onAddress?(address)
+            self.onAddress = nil
+        }
+    }
+
+    private func finish(withError message: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.isLocating = false
+            self.errorMessage = message
+            self.onAddress = nil
+        }
     }
 }
