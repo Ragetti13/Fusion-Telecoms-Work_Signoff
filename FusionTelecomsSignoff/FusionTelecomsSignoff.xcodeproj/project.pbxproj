@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		BFAB0001000000000000000A /* FusionTelecomsSignoffApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */; };
 		BFAB0002000000000000000A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1002000000000000000A /* ContentView.swift */; };
-		BFAB0016000000000000000A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1018000000000000000A /* Theme.swift */; };
 		BFAB0003000000000000000A /* WorkOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1003000000000000000A /* WorkOrder.swift */; };
 		BFAB0004000000000000000A /* WorkOrderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1004000000000000000A /* WorkOrderStore.swift */; };
 		BFAB0005000000000000000A /* JobListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1005000000000000000A /* JobListView.swift */; };
@@ -29,6 +28,7 @@
 		BFAB0013000000000000000A /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1014000000000000000A /* ShareSheet.swift */; };
 		BFAB0014000000000000000A /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1016000000000000000A /* DeepLinkHandler.swift */; };
 		BFAB0015000000000000000A /* SignoffJobsAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1017000000000000000A /* SignoffJobsAPI.swift */; };
+		BFAB0016000000000000000A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1018000000000000000A /* Theme.swift */; };
 		BFAB0017000000000000000A /* QuoteBuilderAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1019000000000000000A /* QuoteBuilderAPI.swift */; };
 		BFAB0018000000000000000A /* LeadFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB101A000000000000000A /* LeadFormView.swift */; };
 		BFAB0019000000000000000A /* PriceBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB101B000000000000000A /* PriceBookView.swift */; };
@@ -37,7 +37,6 @@
 /* Begin PBXFileReference section */
 		BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FusionTelecomsSignoffApp.swift; sourceTree = "<group>"; };
 		BFAB1002000000000000000A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		BFAB1018000000000000000A /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		BFAB1003000000000000000A /* WorkOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrder.swift; sourceTree = "<group>"; };
 		BFAB1004000000000000000A /* WorkOrderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrderStore.swift; sourceTree = "<group>"; };
 		BFAB1005000000000000000A /* JobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobListView.swift; sourceTree = "<group>"; };
@@ -59,6 +58,7 @@
 		BFAB1015000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BFAB1016000000000000000A /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
 		BFAB1017000000000000000A /* SignoffJobsAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignoffJobsAPI.swift; sourceTree = "<group>"; };
+		BFAB1018000000000000000A /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		BFAB1019000000000000000A /* QuoteBuilderAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteBuilderAPI.swift; sourceTree = "<group>"; };
 		BFAB101A000000000000000A /* LeadFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadFormView.swift; sourceTree = "<group>"; };
 		BFAB101B000000000000000A /* PriceBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceBookView.swift; sourceTree = "<group>"; };
@@ -375,15 +375,15 @@
 		BFAB6003000000000000000A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = FieldOps;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6Q848693YW;
 				DEVELOPMENT_ASSET_PATHS = "\"FusionTelecomsSignoff/Preview Content\"";
+				DEVELOPMENT_TEAM = 6Q848693YW;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "FusionTelecomsSignoff/Info.plist";
+				INFOPLIST_FILE = FusionTelecomsSignoff/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -400,15 +400,15 @@
 		BFAB6004000000000000000A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = FieldOps;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6Q848693YW;
 				DEVELOPMENT_ASSET_PATHS = "\"FusionTelecomsSignoff/Preview Content\"";
+				DEVELOPMENT_TEAM = 6Q848693YW;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "FusionTelecomsSignoff/Info.plist";
+				INFOPLIST_FILE = FusionTelecomsSignoff/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
