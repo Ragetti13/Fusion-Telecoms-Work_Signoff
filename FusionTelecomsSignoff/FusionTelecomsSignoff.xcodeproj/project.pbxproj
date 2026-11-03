@@ -20,6 +20,7 @@
 		BFAB000B000000000000000A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB100B000000000000000A /* SettingsView.swift */; };
 		BFAB000C000000000000000A /* JobSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB100C000000000000000A /* JobSummaryCard.swift */; };
 		BFAB000D000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFAB100D000000000000000A /* Assets.xcassets */; };
+		BFAB001A000000000000000A /* FieldOps.icon in Resources */ = {isa = PBXBuildFile; fileRef = BFAB101C000000000000000A /* FieldOps.icon */; };
 		BFAB000E000000000000000A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFAB100E000000000000000A /* Preview Assets.xcassets */; };
 		BFAB000F000000000000000A /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1010000000000000000A /* LocationManager.swift */; };
 		BFAB0010000000000000000A /* PDFFieldExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1011000000000000000A /* PDFFieldExtractor.swift */; };
@@ -48,6 +49,7 @@
 		BFAB100B000000000000000A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		BFAB100C000000000000000A /* JobSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobSummaryCard.swift; sourceTree = "<group>"; };
 		BFAB100D000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BFAB101C000000000000000A /* FieldOps.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = FieldOps.icon; sourceTree = "<group>"; };
 		BFAB100E000000000000000A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		BFAB100F000000000000000A /* FusionTelecomsSignoff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FusionTelecomsSignoff.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFAB1010000000000000000A /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
@@ -94,6 +96,7 @@
 				BFAB2004000000000000000A /* Views */,
 				BFAB2005000000000000000A /* Services */,
 				BFAB100D000000000000000A /* Assets.xcassets */,
+				BFAB101C000000000000000A /* FieldOps.icon */,
 				BFAB2007000000000000000A /* Preview Content */,
 			);
 			path = FusionTelecomsSignoff;
@@ -216,6 +219,7 @@
 			files = (
 				BFAB000E000000000000000A /* Preview Assets.xcassets in Resources */,
 				BFAB000D000000000000000A /* Assets.xcassets in Resources */,
+				BFAB001A000000000000000A /* FieldOps.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
