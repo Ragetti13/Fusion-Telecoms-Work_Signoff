@@ -61,24 +61,23 @@ struct JobListView: View {
                     .foregroundStyle(.white)
             }
             .disabled(store.isSyncing)
+            .accessibilityLabel("Refresh jobs")
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button { showingNewJob = true } label: {
                 Image(systemName: "plus")
                     .foregroundStyle(.white)
             }
+            .accessibilityLabel("New job")
         }
-        // Settings tucked into a menu (a cog), leaving room for more app
-        // settings as it grows.
+        // Was a Menu containing a single Settings item, which cost an extra tap
+        // for nothing; it opens Settings directly now.
         ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-                Button { showingSettings = true } label: {
-                    Label("Settings", systemImage: "gearshape")
-                }
-            } label: {
+            Button { showingSettings = true } label: {
                 Image(systemName: "gearshape")
                     .foregroundStyle(.white)
             }
+            .accessibilityLabel("Settings")
         }
     }
 
@@ -149,9 +148,10 @@ struct JobListView: View {
     private var emptyState: some View {
         VStack(spacing: 22) {
             Spacer()
-            LogoBadge(size: 108, corner: 24)
+            LogoBadge(size: 108, corner: Layout.radiusBadge)
             VStack(spacing: 6) {
-                Text("Work Sign-Off")
+                // Was "Work Sign-Off", which didn't match the app's name.
+                Text("Field Ops")
                     .font(.title2).fontWeight(.bold)
                 Text("Pull down to load jobs from Quote Builder, or tap + to create one.")
                     .font(.subheadline)
