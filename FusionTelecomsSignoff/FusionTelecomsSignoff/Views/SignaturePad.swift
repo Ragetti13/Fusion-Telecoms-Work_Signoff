@@ -1,4 +1,59 @@
 import SwiftUI
+
+/// Keeps the signing area clear of the iPhone Duo's fold.
+///
+/// On iPhone Duo the fold is reported as a "division" reserved region. Only
+/// *active* regions are returned by default, and the fold's region is inactive
+/// with zero width while the device is flat — so a non-empty result means the
+/// device is folded and a hinge physically crosses this view. Signing across a
+/// hinge is miserable, so the pad is inset to the widest fold-free slice.
+@available(iOS 27.1, *)
+struct FoldAwareSignaturePad: View {
+    @Binding var signatureImage: UIImage?
+    @Binding var hasSignature: Bool
+    let height: CGFloat
+
+    var body: some View {
+        GeometryReader { proxy in
+            let bounds = CGRect(origin: .zero, size: proxy.size)
+            let folds = proxy.reservedRegions(kind: .division).map(\.frame)
+            let area = Self.widestFoldFreeRect(in: bounds, folds: folds)
+
+            SignaturePad(signatureImage: $signatureImage, hasSignature: $hasSignature)
+                .frame(width: area.width, height: area.height)
+                .offset(x: area.minX, y: area.minY)
+        }
+        .frame(height: height)
+    }
+
+    /// The widest vertical slice of `bounds` that no fold crosses.
+    ///
+    /// A fold that spans the whole width (or misses this view entirely) can't be
+    /// dodged horizontally, so `bounds` is returned unchanged in those cases.
+    static func widestFoldFreeRect(in bounds: CGRect, folds: [CGRect]) -> CGRect {
+        let crossing = folds
+            .filter { $0.intersects(bounds) && $0.width < bounds.width }
+            .sorted { $0.minX < $1.minX }
+        guard !crossing.isEmpty else { return bounds }
+
+        var slices: [CGRect] = []
+        var cursor = bounds.minX
+        for fold in crossing {
+            if fold.minX > cursor {
+                slices.append(CGRect(x: cursor, y: bounds.minY,
+                                     width: fold.minX - cursor, height: bounds.height))
+            }
+            cursor = max(cursor, fold.maxX)
+        }
+        if bounds.maxX > cursor {
+            slices.append(CGRect(x: cursor, y: bounds.minY,
+                                 width: bounds.maxX - cursor, height: bounds.height))
+        }
+        // Every slice was degenerate (a fold covering the view) — keep the
+        // original bounds rather than collapsing the pad to nothing.
+        return slices.max { $0.width < $1.width } ?? bounds
+    }
+}
 import UIKit
 
 struct SignaturePad: UIViewRepresentable {

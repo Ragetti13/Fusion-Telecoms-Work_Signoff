@@ -63,31 +63,11 @@ struct SignatureCaptureView: View {
     @State private var showingShareSheet = false
 
     var body: some View {
-        ScrollView {
-            if isRegularWidth {
-                // Two columns: paperwork on the left, signing on the right, so
-                // the customer can sign without the tech scrolling past it.
-                HStack(alignment: .top, spacing: Layout.gapSection) {
-                    VStack(spacing: Layout.gapSection) {
-                        JobSummaryCard(workOrder: workOrder)
-                        installDetailsCard
-                        photosCard
-                    }
-                    .frame(maxWidth: .infinity, alignment: .top)
-
-                    signatureCard
-                        .frame(maxWidth: .infinity, alignment: .top)
-                }
-                .padding()
+        Group {
+            if #available(iOS 27.1, *) {
+                duoArrangement
             } else {
-                VStack(spacing: Layout.gapSection) {
-                    JobSummaryCard(workOrder: workOrder)
-                    installDetailsCard
-                    photosCard
-                    signatureCard
-                }
-                .padding()
-                .readableColumn()
+                legacyLayout
             }
         }
         .scrollDismissesKeyboard(.interactively)
@@ -179,7 +159,81 @@ struct SignatureCaptureView: View {
         }
     }
 
+    // MARK: - Layout
+
+    /// iPhone Duo: the system arranges signing and paperwork for the current
+    /// pose. ArrangementView takes the view's size classes, its aspect ratio
+    /// and whether any division (fold) regions are active into account, so it
+    /// handles folded/flat/propped-up without this view inspecting the pose.
+    /// Each pane scrolls on its own, so signing stays put while details scroll.
+    @available(iOS 27.1, *)
+    private var duoArrangement: some View {
+        ArrangementView {
+            ScrollView {
+                signatureCard.padding()
+            }
+        } secondary: {
+            ScrollView {
+                VStack(spacing: Layout.gapSection) {
+                    JobSummaryCard(workOrder: workOrder)
+                    installDetailsCard
+                    photosCard
+                }
+                .padding()
+            }
+        }
+    }
+
+    /// iOS 26 fallback: size-class driven two-column split.
+    private var legacyLayout: some View {
+        ScrollView {
+            if isRegularWidth {
+                // Two columns: paperwork on the left, signing on the right, so
+                // the customer can sign without the tech scrolling past it.
+                HStack(alignment: .top, spacing: Layout.gapSection) {
+                    VStack(spacing: Layout.gapSection) {
+                        JobSummaryCard(workOrder: workOrder)
+                        installDetailsCard
+                        photosCard
+                    }
+                    .frame(maxWidth: .infinity, alignment: .top)
+
+                    signatureCard
+                        .frame(maxWidth: .infinity, alignment: .top)
+                }
+                .padding()
+            } else {
+                VStack(spacing: Layout.gapSection) {
+                    JobSummaryCard(workOrder: workOrder)
+                    installDetailsCard
+                    photosCard
+                    signatureCard
+                }
+                .padding()
+                .readableColumn()
+            }
+        }
+    }
+
     // MARK: - Signature
+
+    /// The pad dodges the fold on iPhone Duo; elsewhere it fills its row.
+    @ViewBuilder
+    private var signaturePad: some View {
+        let height = Layout.signatureHeight(regularWidth: isRegularWidth)
+        if #available(iOS 27.1, *) {
+            FoldAwareSignaturePad(
+                signatureImage: $signatureImage,
+                hasSignature: $hasSignature,
+                height: height
+            )
+            .id(padID)
+        } else {
+            SignaturePad(signatureImage: $signatureImage, hasSignature: $hasSignature)
+                .id(padID)
+                .frame(height: height)
+        }
+    }
 
     private var signatureCard: some View {
         VStack(alignment: .leading, spacing: Layout.gap) {
@@ -196,9 +250,7 @@ struct SignatureCaptureView: View {
             }
             .pickerStyle(.segmented)
 
-            SignaturePad(signatureImage: $signatureImage, hasSignature: $hasSignature)
-                .id(padID)
-                .frame(height: Layout.signatureHeight(regularWidth: isRegularWidth))
+            signaturePad
                 .accessibilityLabel("Signature pad")
                 .accessibilityHint("Draw the customer's signature with your finger.")
 
