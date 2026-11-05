@@ -20,7 +20,6 @@
 		BFAB000B000000000000000A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB100B000000000000000A /* SettingsView.swift */; };
 		BFAB000C000000000000000A /* JobSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB100C000000000000000A /* JobSummaryCard.swift */; };
 		BFAB000D000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFAB100D000000000000000A /* Assets.xcassets */; };
-		BFAB001A000000000000000A /* FieldOps.icon in Resources */ = {isa = PBXBuildFile; fileRef = BFAB101C000000000000000A /* FieldOps.icon */; };
 		BFAB000E000000000000000A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFAB100E000000000000000A /* Preview Assets.xcassets */; };
 		BFAB000F000000000000000A /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1010000000000000000A /* LocationManager.swift */; };
 		BFAB0010000000000000000A /* PDFFieldExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1011000000000000000A /* PDFFieldExtractor.swift */; };
@@ -33,9 +32,11 @@
 		BFAB0017000000000000000A /* QuoteBuilderAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1019000000000000000A /* QuoteBuilderAPI.swift */; };
 		BFAB0018000000000000000A /* LeadFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB101A000000000000000A /* LeadFormView.swift */; };
 		BFAB0019000000000000000A /* PriceBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB101B000000000000000A /* PriceBookView.swift */; };
+		BFAB001A000000000000000A /* FieldOps.icon in Resources */ = {isa = PBXBuildFile; fileRef = BFAB101C000000000000000A /* FieldOps.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1EC7C4AC309A5CA400346C13 /* FusionTelecomsSignoff.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FusionTelecomsSignoff.entitlements; sourceTree = "<group>"; };
 		BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FusionTelecomsSignoffApp.swift; sourceTree = "<group>"; };
 		BFAB1002000000000000000A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		BFAB1003000000000000000A /* WorkOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrder.swift; sourceTree = "<group>"; };
@@ -49,7 +50,6 @@
 		BFAB100B000000000000000A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		BFAB100C000000000000000A /* JobSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobSummaryCard.swift; sourceTree = "<group>"; };
 		BFAB100D000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		BFAB101C000000000000000A /* FieldOps.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = FieldOps.icon; sourceTree = "<group>"; };
 		BFAB100E000000000000000A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		BFAB100F000000000000000A /* FusionTelecomsSignoff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FusionTelecomsSignoff.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFAB1010000000000000000A /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
@@ -64,6 +64,7 @@
 		BFAB1019000000000000000A /* QuoteBuilderAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteBuilderAPI.swift; sourceTree = "<group>"; };
 		BFAB101A000000000000000A /* LeadFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadFormView.swift; sourceTree = "<group>"; };
 		BFAB101B000000000000000A /* PriceBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceBookView.swift; sourceTree = "<group>"; };
+		BFAB101C000000000000000A /* FieldOps.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = FieldOps.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +89,7 @@
 		BFAB2002000000000000000A /* FusionTelecomsSignoff */ = {
 			isa = PBXGroup;
 			children = (
+				1EC7C4AC309A5CA400346C13 /* FusionTelecomsSignoff.entitlements */,
 				BFAB1001000000000000000A /* FusionTelecomsSignoffApp.swift */,
 				BFAB1002000000000000000A /* ContentView.swift */,
 				BFAB1018000000000000000A /* Theme.swift */,
@@ -381,6 +383,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = FieldOps;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FusionTelecomsSignoff/FusionTelecomsSignoff.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FusionTelecomsSignoff/Preview Content\"";
@@ -406,6 +409,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = FieldOps;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FusionTelecomsSignoff/FusionTelecomsSignoff.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FusionTelecomsSignoff/Preview Content\"";
