@@ -1,0 +1,48 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Xcode — per-user state
+#
+# xcuserdata holds one developer's window layout, breakpoints and selected
+# scheme. It changes on almost every Xcode launch and is never useful to
+# anyone else, so it is the main source of noise in `git status`.
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.perspectivev3
+*.mode1v3
+*.mode2v3
+*.pbxuser
+
+# Note: FusionTelecomsSignoff.xcodeproj/xcshareddata/ is deliberately NOT
+# ignored. That folder holds *shared* schemes, which are meant to be committed
+# so every machine and CI build the same scheme.
+
+# Build output
+build/
+DerivedData/
+*.o
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Package.resolved
+
+# Signing material — must never be committed.
+#
+# The APNs auth key lives only in the server's .env on the VPS. A .p8 or .p12
+# in git would hand push-notification signing authority to anyone with repo
+# access, and GitHub keeps it in history even after a later delete.
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+*.certSigningRequest
