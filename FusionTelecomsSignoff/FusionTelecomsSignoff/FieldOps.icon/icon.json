@@ -4,12 +4,12 @@
     {
       "layers" : [
         {
-          "image-name" : "fusion-icon-background.svg",
-          "name" : "fusion-icon-background"
-        },
-        {
           "image-name" : "fusion-icon-foreground.svg",
           "name" : "fusion-icon-foreground"
+        },
+        {
+          "image-name" : "fusion-icon-background.svg",
+          "name" : "fusion-icon-background"
         }
       ],
       "shadow" : {
