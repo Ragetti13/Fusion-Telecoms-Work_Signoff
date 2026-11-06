@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- No tracking: the app bundles no advertising or analytics SDKs and does
+	     not link user data to third-party data for tracking. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!-- This array covers data collected by bundled SDKs; there are none. The
+	     customer data the app itself handles (name, address, email, phone,
+	     install photos, precise location) is declared in the App Store Connect
+	     privacy questionnaire, which is where first-party collection is
+	     reported. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- UserDefaults holds this app's own settings only: technician
+			     name, server URL, the app-lock toggle, queued sign-offs and the
+			     cached price book. CA92.1 is "access info from the same app". -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

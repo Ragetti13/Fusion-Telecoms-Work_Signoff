@@ -31,6 +31,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
@@ -39,6 +41,8 @@
 	<string>Face ID unlocks Field Ops to protect your saved sign-off key and customer details.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your current location is used to automatically fill in the site address on work orders.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Your photo library is used to attach existing install photos to a job's completion certificate.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
