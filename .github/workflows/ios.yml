@@ -1,14 +1,33 @@
 name: iOS Build
 
+# Manual only, on purpose.
+#
+# Xcode on the developer's Mac is the build and test of record for this app:
+# it is what produces the TestFlight archive, and it typechecks the whole
+# target on every run. This workflow duplicated that on a macOS runner, which
+# GitHub bills at roughly 10x a Linux one, on every push AND every pull
+# request — and with no timeout, so three infra-stalled runs burned ~15 minutes
+# of macOS time each before being killed.
+#
+# `workflow_dispatch` keeps it available for the cases a local build cannot
+# cover — a clean-room build from a fresh checkout, or confirming a change made
+# by someone without a Mac — without spending anything the rest of the time.
+# Run it from the Actions tab, or: gh workflow run ios.yml
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
+
+# A second manual run supersedes the first rather than paying for both.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     name: Build default scheme using any available iPhone simulator
+    # Caps a stalled run. A healthy build here takes ~90 seconds; the runs that
+    # hung were killed by infra at 15 minutes, which on a macOS runner is the
+    # single most expensive thing this workflow has ever done.
+    timeout-minutes: 12
     # `macos-latest` is the macOS 26 image, which only carries Xcode 26.x and
     # iOS SDKs 26.0-26.5. The iPhone Duo APIs (ArrangementView, ReservedRegion)
     # are iOS 27.1, so this needs the Xcode 27 image, where Xcode 27.1 is the
