@@ -397,9 +397,14 @@ struct SignatureCaptureView: View {
                                     Image(systemName: "xmark.circle.fill")
                                         .symbolRenderingMode(.palette)
                                         .foregroundStyle(.white, .black.opacity(0.55))
-                                        .font(.system(size: 20))
+                                        .font(.title3)
+                                        // The glyph plus 3pt of padding gave a
+                                        // ~26pt target, well under the 44pt
+                                        // minimum. The frame makes it hittable
+                                        // without making the badge bigger.
+                                        .frame(width: 44, height: 44)
+                                        .contentShape(Rectangle())
                                 }
-                                .padding(3)
                                 .accessibilityLabel("Remove photo \(index + 1)")
                             }
                         }

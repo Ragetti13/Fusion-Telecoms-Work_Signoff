@@ -14,6 +14,9 @@ struct PDFImportView: View {
     @State private var extractedFields: ExtractedPDFFields?
     @State private var isProcessing = false
     @State private var readError: String?
+    /// Scales the hero glyph with the text under it instead of pinning it at
+    /// 64pt while everything around it grows.
+    @ScaledMetric(relativeTo: .largeTitle) private var heroIcon: CGFloat = 64
 
     var body: some View {
         NavigationStack {
@@ -34,7 +37,7 @@ struct PDFImportView: View {
         VStack(spacing: 28) {
             Spacer()
             Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 64))
+                .font(.system(size: heroIcon))
                 .foregroundStyle(Color.brandPink)
             VStack(spacing: 8) {
                 Text("Import from PDF")
@@ -130,13 +133,18 @@ struct FieldReviewView: View {
             }
             Section("Customer Name") {
                 TextField("Not detected", text: $fields.customerName)
+                    .textContentType(.name)
+                    .textInputAutocapitalization(.words)
             }
             Section("Site Address") {
-                TextField("Not detected", text: $fields.address, axis: .vertical).lineLimit(2...4)
+                TextField("Not detected", text: $fields.address, axis: .vertical)
+                    .textContentType(.fullStreetAddress)
+                    .lineLimit(2...4)
             }
             Section("Customer Email") {
                 TextField("Not detected", text: $fields.customerEmail)
                     .keyboardType(.emailAddress)
+                    .textContentType(.emailAddress)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
             }

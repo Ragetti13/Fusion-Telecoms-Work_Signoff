@@ -50,14 +50,22 @@ struct NewJobView: View {
                 }
 
                 Section("Customer Details") {
-                    TextField("Customer Name *", text: $customerName)
+                    // No "*" markers: an asterisk in a placeholder disappears
+                    // the moment you start typing and VoiceOver reads it as
+                    // "star". The footer below Save names what's missing
+                    // instead, and only when something is.
+                    TextField("Customer Name", text: $customerName)
+                        .textContentType(.name)
+                        .textInputAutocapitalization(.words)
 
                     TextField("Customer Email", text: $customerEmail)
                         .keyboardType(.emailAddress)
+                        .textContentType(.emailAddress)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
 
                     TextField("Site Address", text: $customerAddress, axis: .vertical)
+                        .textContentType(.fullStreetAddress)
                         .lineLimit(2...4)
 
                     Button(action: fetchLocation) {
@@ -78,7 +86,7 @@ struct NewJobView: View {
                     TextField("Describe the work completed...", text: $workDescription, axis: .vertical)
                         .lineLimit(4...10)
                 } header: {
-                    Text("Work Completed *")
+                    Text("Work Completed")
                 }
 
                 Section {
