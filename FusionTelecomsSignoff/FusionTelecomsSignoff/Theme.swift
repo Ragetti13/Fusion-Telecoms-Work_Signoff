@@ -133,8 +133,10 @@ struct LogoBadge: View {
             .frame(width: size, height: size)
             .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
             .overlay(
+                // Semantic separator rather than 6% black, which disappeared
+                // entirely against a dark background.
                 RoundedRectangle(cornerRadius: corner, style: .continuous)
-                    .strokeBorder(Color.black.opacity(0.06), lineWidth: 1)
+                    .strokeBorder(Color(.separator), lineWidth: 1)
             )
             .shadow(color: Color.brandPink.opacity(0.28), radius: 10, x: 0, y: 5)
     }
