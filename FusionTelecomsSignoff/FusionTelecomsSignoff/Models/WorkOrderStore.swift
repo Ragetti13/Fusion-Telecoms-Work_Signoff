@@ -13,6 +13,10 @@ class WorkOrderStore: ObservableObject {
     @Published var pendingPrefill: JobPrefill?
     @Published var signoffAPIURL: String = ""
     @Published var signoffAPIKey: String = ""
+    // Quote Builder sign-in (bearer-token endpoints; the sign-off key doesn't
+    // cover quote building). Password lives in the Keychain like the API key.
+    @Published var quoteUsername: String = ""
+    @Published var quotePassword: String = ""
     @Published var isSyncing: Bool = false
     // Set when a manual Provisioning refresh fails, for a one-off alert.
     @Published var refreshErrorMessage: String?
@@ -24,6 +28,8 @@ class WorkOrderStore: ObservableObject {
     private let techKey = "TechnicianName"
     private let apiURLKey = "SignoffAPIURL"
     private let apiKeyKey = "SignoffAPIKey"
+    private let quoteUserKey = "QuoteBuilderUsername"
+    private let quotePassKey = "QuoteBuilderPassword"
     private let pendingKey = "PendingCompletions"
 
     private let networkMonitor = NetworkMonitor()
@@ -51,6 +57,9 @@ class WorkOrderStore: ObservableObject {
             UserDefaults.standard.removeObject(forKey: apiKeyKey)
         }
 
+        quoteUsername = UserDefaults.standard.string(forKey: quoteUserKey) ?? ""
+        quotePassword = KeychainStore.read(quotePassKey) ?? ""
+
         // Drain the completion queue whenever connectivity returns.
         networkMonitor.onReconnect = { [weak self] in
             Task { await self?.flushPendingCompletions() }
@@ -66,6 +75,13 @@ class WorkOrderStore: ObservableObject {
         UserDefaults.standard.set(signoffAPIURL, forKey: apiURLKey)
         // The key is a secret — store it in the Keychain, never UserDefaults.
         KeychainStore.write(signoffAPIKey, for: apiKeyKey)
+        UserDefaults.standard.set(quoteUsername, forKey: quoteUserKey)
+        KeychainStore.write(quotePassword, for: quotePassKey)
+    }
+
+    /// Credentials for the quote-building (bearer-token) endpoints.
+    var quoteCredentials: QuotesSession.Credentials {
+        .init(baseURL: signoffAPIURL, username: quoteUsername, password: quotePassword)
     }
 
     private func load() {
