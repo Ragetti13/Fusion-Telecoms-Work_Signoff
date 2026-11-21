@@ -25,6 +25,8 @@ struct QuotesListView: View {
     @State private var loading = false
     @State private var loadedOnce = false
     @State private var errorMessage: String?
+    @State private var showingNewQuote = false
+    @State private var path: [QuoteListItem] = []
 
     private var errorBinding: Binding<Bool> {
         Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
@@ -51,7 +53,7 @@ struct QuotesListView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             VStack(spacing: 0) {
                 Picker("Status", selection: $filter) {
                     ForEach(QuoteFilter.allCases) { Text($0.label).tag($0) }
@@ -65,7 +67,16 @@ struct QuotesListView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()
-            .toolbar { BrandLogoLeading() }
+            .toolbar {
+                BrandLogoLeading()
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingNewQuote = true } label: {
+                        Image(systemName: "plus").foregroundStyle(.white)
+                    }
+                    .accessibilityLabel("New quote")
+                    .disabled(needsSignIn)
+                }
+            }
             .searchable(text: $query, prompt: "Search by customer or reference")
             .refreshable { await load() }
             .task { if !loadedOnce { await load() } }
@@ -73,6 +84,14 @@ struct QuotesListView: View {
                 Button("OK", role: .cancel) { errorMessage = nil }
             } message: {
                 Text(errorMessage ?? "")
+            }
+            .sheet(isPresented: $showingNewQuote) {
+                NewQuoteSheet { newId in
+                    await load()
+                    if let fresh = quotes.first(where: { $0.id == newId }) {
+                        path.append(fresh)
+                    }
+                }
             }
             .navigationDestination(for: QuoteListItem.self) { quote in
                 QuoteDetailView(quote: quote)
@@ -193,6 +212,74 @@ struct QuoteRow: View {
             .padding(.vertical, 2)
             .background(color.opacity(0.15), in: Capsule())
             .foregroundStyle(color)
+    }
+}
+
+/// Start a draft quote: customer name (free text) plus an optional reference.
+/// Linking to an existing customer record stays on the web for now.
+struct NewQuoteSheet: View {
+    @EnvironmentObject var store: WorkOrderStore
+    @Environment(\.dismiss) var dismiss
+
+    /// Runs after a successful create, with the new quote's id.
+    let onCreated: (Int) async -> Void
+
+    @State private var customerName = ""
+    @State private var reference = ""
+    @State private var saving = false
+    @State private var errorMessage: String?
+
+    private var errorBinding: Binding<Bool> {
+        Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Customer name", text: $customerName)
+                    TextField("Reference (optional)", text: $reference)
+                        .textInputAutocapitalization(.characters)
+                } footer: {
+                    Text("Creates a draft quote you can add products to straight away.")
+                }
+            }
+            .navigationTitle("New Quote")
+            .navigationBarTitleDisplayMode(.inline)
+            .brandNavigationBar()
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(saving ? "Creating…" : "Create") { Task { await create() } }
+                        .fontWeight(.semibold)
+                        .disabled(saving || customerName.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+            .alert("Couldn't create quote", isPresented: errorBinding) {
+                Button("OK", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+        }
+    }
+
+    @MainActor
+    private func create() async {
+        saving = true
+        defer { saving = false }
+        do {
+            let id = try await QuotesAPI.createQuote(
+                customerName: customerName.trimmingCharacters(in: .whitespaces),
+                reference: reference.trimmingCharacters(in: .whitespaces),
+                creds: store.quoteCredentials
+            )
+            dismiss()
+            await onCreated(id)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 }
 

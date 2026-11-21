@@ -10,6 +10,8 @@ struct QuoteDetailView: View {
     @State private var summary: QuoteSummary?
     @State private var loading = false
     @State private var errorMessage: String?
+    @State private var showingAddItem = false
+    @State private var editingLine: QuoteLineItem?
 
     private var errorBinding: Binding<Bool> {
         Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
@@ -43,6 +45,22 @@ struct QuoteDetailView: View {
         .navigationTitle(quote.customerName)
         .navigationBarTitleDisplayMode(.inline)
         .brandNavigationBar()
+        .toolbar {
+            if quote.isDraft {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingAddItem = true } label: {
+                        Image(systemName: "plus").foregroundStyle(.white)
+                    }
+                    .accessibilityLabel("Add product")
+                }
+            }
+        }
+        .sheet(isPresented: $showingAddItem) {
+            ProductPickerSheet(quoteId: quote.id) { await load() }
+        }
+        .sheet(item: $editingLine) { line in
+            LineEditSheet(quoteId: quote.id, line: line) { await load() }
+        }
         .refreshable { await load() }
         .task { await load() }
         .alert("Couldn't load quote", isPresented: errorBinding) {
@@ -107,6 +125,19 @@ struct QuoteDetailView: View {
             } else {
                 ForEach(items) { line in
                     QuoteLineRow(line: line, perMonth: perMonth)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if quote.isDraft { editingLine = line }
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            if quote.isDraft {
+                                Button(role: .destructive) {
+                                    Task { await deleteLine(line) }
+                                } label: {
+                                    Label("Remove", systemImage: "trash")
+                                }
+                            }
+                        }
                 }
                 HStack {
                     Text("Total").fontWeight(.semibold)
@@ -151,6 +182,16 @@ struct QuoteDetailView: View {
         defer { loading = false }
         do {
             summary = try await QuotesAPI.quoteSummary(id: quote.id, creds: store.quoteCredentials)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func deleteLine(_ line: QuoteLineItem) async {
+        do {
+            try await QuotesAPI.deleteLineItem(quoteId: quote.id, lineItemId: line.id, creds: store.quoteCredentials)
+            await load()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -200,5 +241,279 @@ struct QuoteLineRow: View {
         }
         .padding(.vertical, 2)
         .opacity(declined ? 0.6 : 1)
+    }
+}
+
+// MARK: - Add product
+
+/// Search the price book and add a product to the draft quote.
+struct ProductPickerSheet: View {
+    @EnvironmentObject var store: WorkOrderStore
+    @Environment(\.dismiss) var dismiss
+
+    let quoteId: Int
+    /// Runs after a successful add so the detail view can reload.
+    let onAdded: () async -> Void
+
+    @State private var query = ""
+    @State private var category: PriceCategory = .all
+    @State private var items: [PriceBookItem] = []
+    @State private var loading = false
+    @State private var selected: PriceBookItem?
+    @State private var quantity = 1
+    @State private var isOptional = false
+    @State private var saving = false
+    @State private var errorMessage: String?
+
+    private var errorBinding: Binding<Bool> {
+        Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                Picker("Category", selection: $category) {
+                    ForEach(PriceCategory.allCases) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+
+                if let selected {
+                    selectedBar(selected)
+                }
+
+                List(items) { item in
+                    Button {
+                        selected = item
+                        quantity = 1
+                        isOptional = false
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.name)
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(.primary)
+                                if let sku = item.sku, !sku.isEmpty {
+                                    Text(sku).font(.caption).foregroundStyle(.secondary)
+                                }
+                            }
+                            Spacer()
+                            Text(QuoteFormat.currency(item.salePrice) + (item.isMonthly ? "/mo" : ""))
+                                .font(.subheadline.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .overlay {
+                    if items.isEmpty {
+                        if loading {
+                            ProgressView()
+                        } else {
+                            Text(query.isEmpty ? "Search the price book." : "No products match.")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Add Product")
+            .navigationBarTitleDisplayMode(.inline)
+            .brandNavigationBar()
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .searchable(text: $query, prompt: "Search products")
+            .onSubmit(of: .search) { Task { await search() } }
+            .onChange(of: category) { Task { await search() } }
+            .task { await search() }
+            .alert("Couldn't add product", isPresented: errorBinding) {
+                Button("OK", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+        }
+    }
+
+    private func selectedBar(_ item: PriceBookItem) -> some View {
+        VStack(spacing: 10) {
+            HStack {
+                Text(item.name).font(.subheadline.weight(.semibold)).lineLimit(1)
+                Spacer()
+                Button { selected = nil } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+                }
+            }
+            HStack {
+                Stepper("Qty: \(quantity)", value: $quantity, in: 1...999)
+                    .fixedSize()
+                Spacer()
+                Toggle("Optional", isOn: $isOptional)
+                    .toggleStyle(.button)
+            }
+            Button {
+                Task { await add(item) }
+            } label: {
+                Text(saving ? "Adding…" : "Add \(quantity) × \(item.name)")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.brandPink)
+            .disabled(saving)
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+    }
+
+    @MainActor
+    private func search() async {
+        loading = true
+        defer { loading = false }
+        do {
+            items = try await QuoteBuilderAPI.searchPriceBook(
+                query: query, category: category.apiValue,
+                baseURL: store.signoffAPIURL, apiKey: store.signoffAPIKey
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func add(_ item: PriceBookItem) async {
+        saving = true
+        defer { saving = false }
+        do {
+            try await QuotesAPI.addLineItem(
+                quoteId: quoteId, productId: item.id, quantity: quantity,
+                isOptional: isOptional, creds: store.quoteCredentials
+            )
+            dismiss()
+            await onAdded()
+        } catch {
+            // Minimum-term and other server rules surface here verbatim.
+            errorMessage = error.localizedDescription
+        }
+    }
+}
+
+// MARK: - Edit line
+
+/// Edit a draft line: quantity, unit price, discount and the optional flag.
+/// The server enforces the pricing rules (e.g. never selling below cost) and
+/// its refusal message is shown verbatim.
+struct LineEditSheet: View {
+    @EnvironmentObject var store: WorkOrderStore
+    @Environment(\.dismiss) var dismiss
+
+    let quoteId: Int
+    let line: QuoteLineItem
+    let onSaved: () async -> Void
+
+    @State private var quantity: Int = 1
+    @State private var priceText = ""
+    @State private var discountKind = "none"      // "none" | "percent" | "amount"
+    @State private var discountText = ""
+    @State private var optional = false
+    @State private var saving = false
+    @State private var errorMessage: String?
+
+    private var errorBinding: Binding<Bool> {
+        Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(line.productNameSnapshot) {
+                    Stepper("Quantity: \(quantity)", value: $quantity, in: 1...999)
+                    LabeledContent("Unit price") {
+                        TextField("0.00", text: $priceText)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 110)
+                    }
+                    Toggle("Optional add-on", isOn: $optional)
+                }
+
+                Section("Discount") {
+                    Picker("Type", selection: $discountKind) {
+                        Text("None").tag("none")
+                        Text("Percent").tag("percent")
+                        Text("Amount").tag("amount")
+                    }
+                    .pickerStyle(.segmented)
+                    if discountKind != "none" {
+                        LabeledContent(discountKind == "percent" ? "Percent off" : "Amount off") {
+                            TextField("0", text: $discountText)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 110)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Edit Line")
+            .navigationBarTitleDisplayMode(.inline)
+            .brandNavigationBar()
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(saving ? "Saving…" : "Save") { Task { await save() } }
+                        .fontWeight(.semibold)
+                        .disabled(saving)
+                }
+            }
+            .onAppear {
+                quantity = Int(line.quantity)
+                priceText = String(format: "%.2f", line.unitSalePriceSnapshot)
+                optional = line.isOptional ?? false
+                if let type = line.discountType, let value = line.discountValue {
+                    discountKind = type
+                    discountText = type == "percent"
+                        ? String(format: "%g", value)
+                        : String(format: "%.2f", value)
+                }
+            }
+            .alert("Couldn't save", isPresented: errorBinding) {
+                Button("OK", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+        }
+    }
+
+    @MainActor
+    private func save() async {
+        saving = true
+        defer { saving = false }
+        var fields: [String: Any?] = [
+            "quantity": quantity,
+            "isOptional": optional,
+        ]
+        if let price = Double(priceText.replacingOccurrences(of: ",", with: ".")) {
+            fields["unitSalePrice"] = price
+        }
+        if discountKind == "none" {
+            fields["discountType"] = NSNull()
+            fields["discountValue"] = NSNull()
+        } else if let value = Double(discountText.replacingOccurrences(of: ",", with: ".")), value > 0 {
+            fields["discountType"] = discountKind
+            fields["discountValue"] = value
+        }
+        do {
+            try await QuotesAPI.updateLineItem(
+                quoteId: quoteId, lineItemId: line.id, fields: fields,
+                creds: store.quoteCredentials
+            )
+            dismiss()
+            await onSaved()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 }

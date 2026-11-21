@@ -43,6 +43,8 @@ struct QuoteLineItem: Decodable, Identifiable {
     let lineMarginPercent: Double?
     let isOptional: Bool?
     let optionalSelected: Bool?
+    let discountType: String?          // "percent" | "amount"
+    let discountValue: Double?
     let discountAmount: Double?
     let productCaveatSnapshot: String?
 
@@ -145,6 +147,31 @@ enum QuotesAPI {
 
     static func quoteSummary(id: Int, creds: QuotesSession.Credentials) async throws -> QuoteSummary {
         try await get("/api/quotes/\(id)/summary", creds: creds)
+    }
+
+    /// Create a draft quote for a free-text customer name. Returns the new id.
+    static func createQuote(customerName: String, reference: String?, creds: QuotesSession.Credentials) async throws -> Int {
+        var body: [String: Any?] = ["customerName": customerName]
+        if let reference, !reference.isEmpty { body["customerReference"] = reference }
+        let data = try await send(path: "/api/quotes", method: "POST", body: body, creds: creds)
+        struct Created: Decodable { let id: Int }
+        return try JSONDecoder().decode(Created.self, from: data).id
+    }
+
+    static func addLineItem(quoteId: Int, productId: Int, quantity: Int, isOptional: Bool, creds: QuotesSession.Credentials) async throws {
+        var body: [String: Any?] = ["productId": productId, "quantity": quantity]
+        if isOptional { body["isOptional"] = true }
+        _ = try await send(path: "/api/quotes/\(quoteId)/line-items", method: "POST", body: body, creds: creds)
+    }
+
+    /// Patch one or more line fields. Pass NSNull() to clear a nullable field
+    /// (e.g. discountType/discountValue to remove a discount).
+    static func updateLineItem(quoteId: Int, lineItemId: Int, fields: [String: Any?], creds: QuotesSession.Credentials) async throws {
+        _ = try await send(path: "/api/quotes/\(quoteId)/line-items/\(lineItemId)", method: "PATCH", body: fields, creds: creds)
+    }
+
+    static func deleteLineItem(quoteId: Int, lineItemId: Int, creds: QuotesSession.Credentials) async throws {
+        _ = try await send(path: "/api/quotes/\(quoteId)/line-items/\(lineItemId)", method: "DELETE", body: nil, creds: creds)
     }
 
     // MARK: request plumbing
