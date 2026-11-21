@@ -64,7 +64,7 @@ struct PDFImportView: View {
         .navigationBarTitleDisplayMode(.inline)
         .brandNavigationBar()
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
+            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
         }
         .fileImporter(isPresented: $showingFilePicker, allowedContentTypes: [.pdf]) { result in
             switch result {

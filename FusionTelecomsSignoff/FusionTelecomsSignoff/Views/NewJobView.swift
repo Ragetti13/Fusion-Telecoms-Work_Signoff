@@ -101,7 +101,7 @@ struct NewJobView: View {
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
             }
