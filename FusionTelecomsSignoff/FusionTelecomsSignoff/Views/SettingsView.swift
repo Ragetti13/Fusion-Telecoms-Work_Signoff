@@ -8,6 +8,8 @@ struct SettingsView: View {
     @State private var name = ""
     @State private var apiURL = ""
     @State private var apiKey = ""
+    @State private var quoteUsername = ""
+    @State private var quotePassword = ""
 
     private var appVersion: String {
         let info = Bundle.main.infoDictionary
@@ -54,6 +56,17 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    TextField("Username", text: $quoteUsername)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    SecureField("Password", text: $quotePassword)
+                } header: {
+                    Text("Quote Builder Sign-In")
+                } footer: {
+                    Text("Your Quote Builder login, used by the Quotes tab to browse and build quotes. Stored securely like the API key.")
+                }
+
+                Section {
                     Toggle(isOn: Binding(
                         get: { lock.enabled },
                         set: { lock.setEnabled($0) }
@@ -91,7 +104,11 @@ struct SettingsView: View {
                         store.technicianName = name.trimmingCharacters(in: .whitespaces)
                         store.signoffAPIURL = apiURL.trimmingCharacters(in: .whitespaces)
                         store.signoffAPIKey = apiKey.trimmingCharacters(in: .whitespaces)
+                        store.quoteUsername = quoteUsername.trimmingCharacters(in: .whitespaces)
+                        store.quotePassword = quotePassword
                         store.save()
+                        // Changed credentials mean any cached token is stale.
+                        Task { await QuotesSession.shared.invalidate() }
                         dismiss()
                     }
                     .fontWeight(.semibold)
@@ -101,6 +118,8 @@ struct SettingsView: View {
                 name = store.technicianName
                 apiURL = store.signoffAPIURL
                 apiKey = store.signoffAPIKey
+                quoteUsername = store.quoteUsername
+                quotePassword = store.quotePassword
             }
         }
     }

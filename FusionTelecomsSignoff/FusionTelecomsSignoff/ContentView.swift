@@ -9,6 +9,9 @@ struct ContentView: View {
             Tab("New Lead", systemImage: "person.badge.plus") {
                 LeadFormView()
             }
+            Tab("Quotes", systemImage: "doc.text") {
+                QuotesListView()
+            }
             Tab("Price Book", systemImage: "sterlingsign.circle") {
                 PriceBookView()
             }

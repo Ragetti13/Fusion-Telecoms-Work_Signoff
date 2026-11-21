@@ -30,6 +30,9 @@
 		BFAB0015000000000000000A /* SignoffJobsAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1017000000000000000A /* SignoffJobsAPI.swift */; };
 		BFAB0016000000000000000A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1018000000000000000A /* Theme.swift */; };
 		BFAB0017000000000000000A /* QuoteBuilderAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1019000000000000000A /* QuoteBuilderAPI.swift */; };
+		BFAB0030000000000000000A /* QuotesAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1030000000000000000A /* QuotesAPI.swift */; };
+		BFAB0031000000000000000A /* QuotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1031000000000000000A /* QuotesListView.swift */; };
+		BFAB0032000000000000000A /* QuoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1032000000000000000A /* QuoteDetailView.swift */; };
 		BFAB0018000000000000000A /* LeadFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB101A000000000000000A /* LeadFormView.swift */; };
 		BFAB0019000000000000000A /* PriceBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB101B000000000000000A /* PriceBookView.swift */; };
 		BFAB001A000000000000000A /* FieldOps.icon in Resources */ = {isa = PBXBuildFile; fileRef = BFAB101C000000000000000A /* FieldOps.icon */; };
@@ -63,6 +66,9 @@
 		BFAB1017000000000000000A /* SignoffJobsAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignoffJobsAPI.swift; sourceTree = "<group>"; };
 		BFAB1018000000000000000A /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		BFAB1019000000000000000A /* QuoteBuilderAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteBuilderAPI.swift; sourceTree = "<group>"; };
+		BFAB1030000000000000000A /* QuotesAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotesAPI.swift; sourceTree = "<group>"; };
+		BFAB1031000000000000000A /* QuotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotesListView.swift; sourceTree = "<group>"; };
+		BFAB1032000000000000000A /* QuoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteDetailView.swift; sourceTree = "<group>"; };
 		BFAB101A000000000000000A /* LeadFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadFormView.swift; sourceTree = "<group>"; };
 		BFAB101B000000000000000A /* PriceBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceBookView.swift; sourceTree = "<group>"; };
 		BFAB101C000000000000000A /* FieldOps.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = FieldOps.icon; sourceTree = "<group>"; };
@@ -131,6 +137,8 @@
 				BFAB1014000000000000000A /* ShareSheet.swift */,
 				BFAB101A000000000000000A /* LeadFormView.swift */,
 				BFAB101B000000000000000A /* PriceBookView.swift */,
+				BFAB1031000000000000000A /* QuotesListView.swift */,
+				BFAB1032000000000000000A /* QuoteDetailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -144,6 +152,7 @@
 				BFAB1016000000000000000A /* DeepLinkHandler.swift */,
 				BFAB1017000000000000000A /* SignoffJobsAPI.swift */,
 				BFAB1019000000000000000A /* QuoteBuilderAPI.swift */,
+				BFAB1030000000000000000A /* QuotesAPI.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -257,6 +266,9 @@
 				BFAB0014000000000000000A /* DeepLinkHandler.swift in Sources */,
 				BFAB0015000000000000000A /* SignoffJobsAPI.swift in Sources */,
 				BFAB0017000000000000000A /* QuoteBuilderAPI.swift in Sources */,
+				BFAB0030000000000000000A /* QuotesAPI.swift in Sources */,
+				BFAB0031000000000000000A /* QuotesListView.swift in Sources */,
+				BFAB0032000000000000000A /* QuoteDetailView.swift in Sources */,
 				BFAB0018000000000000000A /* LeadFormView.swift in Sources */,
 				BFAB0019000000000000000A /* PriceBookView.swift in Sources */,
 			);
