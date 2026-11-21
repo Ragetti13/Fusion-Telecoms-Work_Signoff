@@ -17,6 +17,8 @@ struct QuoteListItem: Decodable, Identifiable {
     let marginPercent: Double?
     let contractType: String?          // "standard" | "monthly" | "job"
     let contractPeriodMonths: Int?
+    let upfrontPaymentPercent: Double?
+    let isRenewal: Bool?
     let version: Int
     let rootQuoteId: Int?
     let isLatestVersion: Bool?
@@ -172,6 +174,47 @@ enum QuotesAPI {
 
     static func deleteLineItem(quoteId: Int, lineItemId: Int, creds: QuotesSession.Credentials) async throws {
         _ = try await send(path: "/api/quotes/\(quoteId)/line-items/\(lineItemId)", method: "DELETE", body: nil, creds: creds)
+    }
+
+    /// Re-fetch one quote (the single-quote response decodes into the same
+    /// model; list-only extras like termValue just come back nil).
+    static func getQuote(id: Int, creds: QuotesSession.Credentials) async throws -> QuoteListItem {
+        try await get("/api/quotes/\(id)", creds: creds)
+    }
+
+    /// Patch quote fields (contractType, contractPeriodMonths,
+    /// upfrontPaymentPercent, isRenewal, ...). NSNull() sends an explicit null.
+    static func updateQuote(id: Int, fields: [String: Any?], creds: QuotesSession.Credentials) async throws {
+        _ = try await send(path: "/api/quotes/\(id)", method: "PATCH", body: fields, creds: creds)
+    }
+
+    /// Customer-facing accept link for a draft quote (…/q/<token>).
+    static func shareQuoteURL(id: Int, creds: QuotesSession.Credentials) async throws -> URL {
+        let data = try await send(path: "/api/quotes/\(id)/share", method: "POST", body: nil, creds: creds)
+        struct Shared: Decodable { let publicToken: String }
+        let token = try JSONDecoder().decode(Shared.self, from: data).publicToken
+        let base = creds.baseURL.trimmingCharacters(in: .init(charactersIn: "/"))
+        guard let url = URL(string: "\(base)/q/\(token)") else { throw URLError(.badURL) }
+        return url
+    }
+
+    /// Convert a draft to an order. Returns the new order's id.
+    static func convertQuote(id: Int, contractType: String, periodMonths: Int?, creds: QuotesSession.Credentials) async throws -> Int {
+        var body: [String: Any?] = ["contractType": contractType]
+        if let periodMonths { body["contractPeriodMonths"] = periodMonths }
+        let data = try await send(path: "/api/quotes/\(id)/convert", method: "POST", body: body, creds: creds)
+        struct Converted: Decodable { let id: Int }
+        return try JSONDecoder().decode(Converted.self, from: data).id
+    }
+
+    /// Customer-facing signing link for an order (…/o/<token>).
+    static func shareOrderURL(orderId: Int, creds: QuotesSession.Credentials) async throws -> URL {
+        let data = try await send(path: "/api/orders/\(orderId)/share", method: "POST", body: nil, creds: creds)
+        struct Shared: Decodable { let publicToken: String }
+        let token = try JSONDecoder().decode(Shared.self, from: data).publicToken
+        let base = creds.baseURL.trimmingCharacters(in: .init(charactersIn: "/"))
+        guard let url = URL(string: "\(base)/o/\(token)") else { throw URLError(.badURL) }
+        return url
     }
 
     // MARK: request plumbing

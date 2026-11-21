@@ -1,20 +1,38 @@
 import SwiftUI
 
-/// Read-only quote detail: line items split one-off / monthly, totals, margin
-/// and the contract terms — what you need in front of a customer. Editing
-/// lands in a later phase.
+/// Quote detail: line items split one-off / monthly, totals, margin and the
+/// contract terms. Drafts are fully editable — lines, contract, share link
+/// and conversion to an order; converted quotes are read-only.
 struct QuoteDetailView: View {
     @EnvironmentObject var store: WorkOrderStore
     let quote: QuoteListItem
 
+    /// Freshest copy of the quote; the list row we navigated from goes stale
+    /// as soon as a contract field is edited or the quote converts.
+    @State private var current: QuoteListItem?
     @State private var summary: QuoteSummary?
     @State private var loading = false
     @State private var errorMessage: String?
     @State private var showingAddItem = false
     @State private var editingLine: QuoteLineItem?
+    @State private var shareItems: [Any]?
+    @State private var sharing = false
+    @State private var showingConvert = false
+    @State private var converting = false
+    @State private var convertedOrderId: Int?
+    @State private var upfrontText = ""
+
+    private var q: QuoteListItem { current ?? quote }
+    private var isDraft: Bool { q.isDraft }
 
     private var errorBinding: Binding<Bool> {
         Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+    }
+    private var shareBinding: Binding<Bool> {
+        Binding(get: { shareItems != nil }, set: { if !$0 { shareItems = nil } })
+    }
+    private var convertedBinding: Binding<Bool> {
+        Binding(get: { convertedOrderId != nil }, set: { if !$0 { convertedOrderId = nil } })
     }
 
     var body: some View {
@@ -40,13 +58,23 @@ struct QuoteDetailView: View {
                     HStack { Spacer(); ProgressView(); Spacer() }
                 }
             }
+            if isDraft {
+                convertSection
+            }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(quote.customerName)
+        .navigationTitle(q.customerName)
         .navigationBarTitleDisplayMode(.inline)
         .brandNavigationBar()
         .toolbar {
-            if quote.isDraft {
+            if isDraft {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { Task { await shareQuote() } } label: {
+                        Image(systemName: "square.and.arrow.up").foregroundStyle(.white)
+                    }
+                    .accessibilityLabel("Share quote link")
+                    .disabled(sharing)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingAddItem = true } label: {
                         Image(systemName: "plus").foregroundStyle(.white)
@@ -56,14 +84,35 @@ struct QuoteDetailView: View {
             }
         }
         .sheet(isPresented: $showingAddItem) {
-            ProductPickerSheet(quoteId: quote.id) { await load() }
+            ProductPickerSheet(quoteId: q.id) { await load() }
         }
         .sheet(item: $editingLine) { line in
-            LineEditSheet(quoteId: quote.id, line: line) { await load() }
+            LineEditSheet(quoteId: q.id, line: line) { await load() }
+        }
+        .sheet(isPresented: shareBinding) {
+            if let shareItems {
+                ShareSheet(items: shareItems)
+            }
+        }
+        .confirmationDialog("Convert this quote to an order?", isPresented: $showingConvert, titleVisibility: .visible) {
+            Button("Convert to Order") { Task { await convert() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(convertPreviewText)
+        }
+        .alert("Converted to order", isPresented: convertedBinding) {
+            Button("Share signing link") {
+                let orderId = convertedOrderId
+                convertedOrderId = nil
+                if let orderId { Task { await shareOrder(orderId) } }
+            }
+            Button("Done", role: .cancel) { convertedOrderId = nil }
+        } message: {
+            Text("The customer signs via the link; sign-off unlocks once they have.")
         }
         .refreshable { await load() }
         .task { await load() }
-        .alert("Couldn't load quote", isPresented: errorBinding) {
+        .alert("Something went wrong", isPresented: errorBinding) {
             Button("OK", role: .cancel) { errorMessage = nil }
         } message: {
             Text(errorMessage ?? "")
@@ -73,18 +122,18 @@ struct QuoteDetailView: View {
     private var headerSection: some View {
         Section {
             LabeledContent("Status") {
-                Text(quote.isDraft ? "Draft" : "Converted")
-                    .foregroundStyle(quote.isDraft ? .orange : .green)
+                Text(isDraft ? "Draft" : "Converted")
+                    .foregroundStyle(isDraft ? .orange : .green)
                     .fontWeight(.semibold)
             }
-            if let ref = quote.customerReference, !ref.isEmpty {
+            if let ref = q.customerReference, !ref.isEmpty {
                 LabeledContent("Reference", value: ref)
             }
-            LabeledContent("Created", value: QuoteFormat.shortDate(quote.createdAt))
-            if quote.isDraft {
-                LabeledContent("Valid for", value: "\(quote.validDays) days")
+            LabeledContent("Created", value: QuoteFormat.shortDate(q.createdAt))
+            if isDraft {
+                LabeledContent("Valid for", value: "\(q.validDays) days")
             }
-            if quote.acceptedAt != nil, quote.isDraft {
+            if q.acceptedAt != nil, isDraft {
                 LabeledContent("Customer accepted") {
                     Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
                 }
@@ -92,27 +141,122 @@ struct QuoteDetailView: View {
         }
     }
 
+    private static let contractPeriods = [1, 6, 12, 18, 24, 36]
+
     @ViewBuilder
     private var contractSection: some View {
         Section("Contract") {
-            if let type = quote.contractType {
+            if isDraft {
+                Picker("Type", selection: Binding(
+                    get: { q.contractType ?? "none" },
+                    set: { newType in Task { await setContractType(newType) } }
+                )) {
+                    Text("None").tag("none")
+                    Text("Standard").tag("standard")
+                    Text("Monthly").tag("monthly")
+                    Text("Job").tag("job")
+                }
+                if let type = q.contractType, type != "job" {
+                    Picker("Period", selection: Binding(
+                        get: { q.contractPeriodMonths ?? 0 },
+                        set: { months in
+                            Task { await patchQuote(["contractPeriodMonths": months == 0 ? NSNull() : months]) }
+                        }
+                    )) {
+                        Text("Not set").tag(0)
+                        ForEach(Self.contractPeriods, id: \.self) { months in
+                            Text("\(months) months").tag(months)
+                        }
+                    }
+                }
+                if q.contractType == "monthly" {
+                    LabeledContent("Upfront %") {
+                        TextField("e.g. 20", text: $upfrontText)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 90)
+                            .onSubmit { Task { await saveUpfront() } }
+                    }
+                    if upfrontText != upfrontSaved {
+                        Button("Save upfront %") { Task { await saveUpfront() } }
+                    }
+                }
+                Toggle("Renewal", isOn: Binding(
+                    get: { q.isRenewal ?? false },
+                    set: { value in Task { await patchQuote(["isRenewal": value]) } }
+                ))
+            } else if let type = q.contractType {
                 LabeledContent("Type", value: contractLabel(type))
-                if let months = quote.contractPeriodMonths {
+                if let months = q.contractPeriodMonths {
                     LabeledContent("Period", value: "\(months) months")
                 }
                 if let upfront = summary?.upfrontPaymentPercent {
                     LabeledContent("Upfront", value: "\(Int(upfront))% on signing")
                 }
-                if let value = quote.termValue {
-                    LabeledContent("Value over term") {
-                        Text(QuoteFormat.currency(value))
-                            .fontWeight(.semibold)
-                            .monospacedDigit()
-                    }
-                }
             } else {
                 Text("No contract type selected.")
                     .foregroundStyle(.secondary)
+            }
+            if let value = q.termValue {
+                LabeledContent("Value over term") {
+                    Text(QuoteFormat.currency(value))
+                        .fontWeight(.semibold)
+                        .monospacedDigit()
+                }
+            }
+        }
+    }
+
+    private var convertSection: some View {
+        Section {
+            Button {
+                showingConvert = true
+            } label: {
+                HStack {
+                    Spacer()
+                    Text(converting ? "Converting…" : "Convert to Order")
+                        .fontWeight(.semibold)
+                    Image(systemName: "arrow.right")
+                    Spacer()
+                }
+            }
+            .disabled(converting || !canConvert)
+        } footer: {
+            if !canConvert {
+                Text(q.contractType == nil
+                     ? "Choose a contract type before converting."
+                     : "Choose a contract period before converting.")
+            }
+        }
+    }
+
+    /// Mirrors the web rule: a type is required, and monthly needs a period.
+    private var canConvert: Bool {
+        guard let type = q.contractType else { return false }
+        if type == "monthly" { return q.contractPeriodMonths != nil }
+        return true
+    }
+
+    private var convertPreviewText: String {
+        guard let summary else { return "" }
+        if q.contractType == "monthly", let months = q.contractPeriodMonths {
+            return "Monthly contract over \(months) months. One-off \(QuoteFormat.currency(summary.oneOffTotal)), recurring \(QuoteFormat.currency(summary.recurringTotal))/mo."
+        }
+        return "One-off \(QuoteFormat.currency(summary.oneOffTotal)), recurring \(QuoteFormat.currency(summary.recurringTotal))/mo."
+    }
+
+    private func totalsSection(_ summary: QuoteSummary) -> some View {
+        Section("Totals") {
+            LabeledContent("One-off", value: QuoteFormat.currency(summary.oneOffTotal))
+            LabeledContent("Monthly", value: QuoteFormat.currency(summary.recurringTotal) + "/mo")
+            if let upfront = summary.upfrontPayment {
+                LabeledContent("Upfront payment", value: QuoteFormat.currency(upfront))
+            }
+            LabeledContent("Gross margin") {
+                Text("\(summary.totalMarginPercent, specifier: "%.1f")% · \(QuoteFormat.currency(summary.totalMarginAmount))")
+                    .foregroundStyle(summary.totalMarginAmount < 0 ? .red : .green)
+                    .fontWeight(.semibold)
+                    .monospacedDigit()
             }
         }
     }
@@ -127,10 +271,10 @@ struct QuoteDetailView: View {
                     QuoteLineRow(line: line, perMonth: perMonth)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            if quote.isDraft { editingLine = line }
+                            if isDraft { editingLine = line }
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            if quote.isDraft {
+                            if isDraft {
                                 Button(role: .destructive) {
                                     Task { await deleteLine(line) }
                                 } label: {
@@ -152,22 +296,6 @@ struct QuoteDetailView: View {
         }
     }
 
-    private func totalsSection(_ summary: QuoteSummary) -> some View {
-        Section("Totals") {
-            LabeledContent("One-off", value: QuoteFormat.currency(summary.oneOffTotal))
-            LabeledContent("Monthly", value: QuoteFormat.currency(summary.recurringTotal) + "/mo")
-            if let upfront = summary.upfrontPayment {
-                LabeledContent("Upfront payment", value: QuoteFormat.currency(upfront))
-            }
-            LabeledContent("Gross margin") {
-                Text("\(summary.totalMarginPercent, specifier: "%.1f")% · \(QuoteFormat.currency(summary.totalMarginAmount))")
-                    .foregroundStyle(summary.totalMarginAmount < 0 ? .red : .green)
-                    .fontWeight(.semibold)
-                    .monospacedDigit()
-            }
-        }
-    }
-
     private func contractLabel(_ type: String) -> String {
         switch type {
         case "monthly": return "Monthly"
@@ -176,12 +304,95 @@ struct QuoteDetailView: View {
         }
     }
 
+    private var upfrontSaved: String {
+        q.upfrontPaymentPercent.map { String(format: "%g", $0) } ?? ""
+    }
+
+    // MARK: actions
+
     @MainActor
     private func load() async {
         loading = true
         defer { loading = false }
         do {
+            current = try await QuotesAPI.getQuote(id: quote.id, creds: store.quoteCredentials)
             summary = try await QuotesAPI.quoteSummary(id: quote.id, creds: store.quoteCredentials)
+            upfrontText = upfrontSaved
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func patchQuote(_ fields: [String: Any?]) async {
+        do {
+            try await QuotesAPI.updateQuote(id: q.id, fields: fields, creds: store.quoteCredentials)
+            await load()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func setContractType(_ newType: String) async {
+        // Clearing the type (or picking Job) drops the period, like the web.
+        if newType == "none" {
+            await patchQuote(["contractType": NSNull(), "contractPeriodMonths": NSNull()])
+        } else if newType == "job" {
+            await patchQuote(["contractType": newType, "contractPeriodMonths": NSNull()])
+        } else {
+            await patchQuote(["contractType": newType])
+        }
+    }
+
+    @MainActor
+    private func saveUpfront() async {
+        let trimmed = upfrontText.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty {
+            await patchQuote(["upfrontPaymentPercent": NSNull()])
+        } else if let pct = Double(trimmed.replacingOccurrences(of: ",", with: ".")), (0...100).contains(pct) {
+            await patchQuote(["upfrontPaymentPercent": pct])
+        } else {
+            errorMessage = "Upfront must be a percentage between 0 and 100."
+        }
+    }
+
+    @MainActor
+    private func shareQuote() async {
+        sharing = true
+        defer { sharing = false }
+        do {
+            let url = try await QuotesAPI.shareQuoteURL(id: q.id, creds: store.quoteCredentials)
+            shareItems = [url]
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func convert() async {
+        guard let type = q.contractType else { return }
+        converting = true
+        defer { converting = false }
+        do {
+            let orderId = try await QuotesAPI.convertQuote(
+                id: q.id, contractType: type,
+                periodMonths: type == "job" ? nil : q.contractPeriodMonths,
+                creds: store.quoteCredentials
+            )
+            await load()
+            convertedOrderId = orderId
+        } catch {
+            // Cost-TBC and period validations surface verbatim.
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func shareOrder(_ orderId: Int) async {
+        do {
+            let url = try await QuotesAPI.shareOrderURL(orderId: orderId, creds: store.quoteCredentials)
+            shareItems = [url]
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -190,7 +401,7 @@ struct QuoteDetailView: View {
     @MainActor
     private func deleteLine(_ line: QuoteLineItem) async {
         do {
-            try await QuotesAPI.deleteLineItem(quoteId: quote.id, lineItemId: line.id, creds: store.quoteCredentials)
+            try await QuotesAPI.deleteLineItem(quoteId: q.id, lineItemId: line.id, creds: store.quoteCredentials)
             await load()
         } catch {
             errorMessage = error.localizedDescription
