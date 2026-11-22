@@ -21,6 +21,8 @@ struct QuoteDetailView: View {
     @State private var converting = false
     @State private var convertedOrderId: Int?
     @State private var upfrontText = ""
+    @State private var renamingBundleKey: String?
+    @State private var renameText = ""
 
     private var q: QuoteListItem { current ?? quote }
     private var isDraft: Bool { q.isDraft }
@@ -58,6 +60,9 @@ struct QuoteDetailView: View {
                     HStack { Spacer(); ProgressView(); Spacer() }
                 }
             }
+            if isDraft, !bundles.isEmpty {
+                bundlesSection
+            }
             if isDraft {
                 convertSection
             }
@@ -90,7 +95,7 @@ struct QuoteDetailView: View {
             ProductPickerSheet(quoteId: q.id) { await load() }
         }
         .sheet(item: $editingLine) { line in
-            LineEditSheet(quoteId: q.id, line: line) { await load() }
+            LineEditSheet(quoteId: q.id, line: line, bundles: bundles) { await load() }
         }
         .sheet(isPresented: shareBinding) {
             if let shareItems {
@@ -206,6 +211,67 @@ struct QuoteDetailView: View {
                         .monospacedDigit()
                 }
             }
+        }
+    }
+
+    /// Bundles on this quote, in first-appearance order: the customer sees
+    /// each as one titled group with a subtotal; prices stay visible here.
+    private var bundles: [(key: String, title: String)] {
+        var seen: [String: String] = [:]
+        var order: [String] = []
+        for line in summary?.lineItems ?? [] {
+            guard let key = line.bundleKey else { continue }
+            if seen[key] == nil { order.append(key) }
+            seen[key] = line.bundleTitle ?? "Bundle"
+        }
+        return order.map { (key: $0, title: seen[$0] ?? "Bundle") }
+    }
+
+    private var bundlesSection: some View {
+        Section {
+            ForEach(bundles, id: \.key) { bundle in
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(bundle.title).font(.subheadline.weight(.medium))
+                        Text("\((summary?.lineItems ?? []).filter { $0.bundleKey == bundle.key }.count) items")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button {
+                        renameText = bundle.title
+                        renamingBundleKey = bundle.key
+                    } label: {
+                        Image(systemName: "pencil")
+                    }
+                    .buttonStyle(.borderless)
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        Task { await dissolveBundle(bundle.key) }
+                    } label: {
+                        Label("Unbundle", systemImage: "rectangle.3.group")
+                    }
+                }
+            }
+        } header: {
+            Text("Bundles")
+        } footer: {
+            Text("The customer sees each bundle as one titled group with a subtotal; component prices stay hidden. Swipe to unbundle.")
+        }
+        .alert("Rename bundle", isPresented: Binding(
+            get: { renamingBundleKey != nil },
+            set: { if !$0 { renamingBundleKey = nil } }
+        )) {
+            TextField("Bundle title", text: $renameText)
+            Button("Save") {
+                let key = renamingBundleKey
+                renamingBundleKey = nil
+                if let key { Task { await renameBundle(key, to: renameText) } }
+            }
+            Button("Cancel", role: .cancel) { renamingBundleKey = nil }
+        } message: {
+            Text("Shown to the customer on quotes and contracts.")
         }
     }
 
@@ -402,6 +468,28 @@ struct QuoteDetailView: View {
     }
 
     @MainActor
+    private func renameBundle(_ key: String, to title: String) async {
+        let trimmed = title.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        do {
+            try await QuotesAPI.updateBundle(quoteId: q.id, key: key, title: trimmed, creds: store.quoteCredentials)
+            await load()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func dissolveBundle(_ key: String) async {
+        do {
+            try await QuotesAPI.deleteBundle(quoteId: q.id, key: key, creds: store.quoteCredentials)
+            await load()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
     private func deleteLine(_ line: QuoteLineItem) async {
         do {
             try await QuotesAPI.deleteLineItem(quoteId: q.id, lineItemId: line.id, creds: store.quoteCredentials)
@@ -444,6 +532,14 @@ struct QuoteLineRow: View {
                     Text(declined ? "Optional — declined" : "Optional add-on")
                         .font(.caption)
                         .foregroundStyle(declined ? .secondary : Color.brandPink)
+                }
+                if let bundleTitle = line.bundleTitle, line.bundleKey != nil {
+                    Text(bundleTitle)
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1)
+                        .background(Color.purple.opacity(0.15), in: Capsule())
+                        .foregroundStyle(.purple)
                 }
             }
             if let desc = line.productDescriptionSnapshot, !desc.isEmpty {
@@ -626,6 +722,7 @@ struct LineEditSheet: View {
 
     let quoteId: Int
     let line: QuoteLineItem
+    let bundles: [(key: String, title: String)]
     let onSaved: () async -> Void
 
     @State private var quantity: Int = 1
@@ -633,6 +730,9 @@ struct LineEditSheet: View {
     @State private var discountKind = "none"      // "none" | "percent" | "amount"
     @State private var discountText = ""
     @State private var optional = false
+    // "" = no bundle, a key = that bundle, "__new__" = create one below.
+    @State private var bundleChoice = ""
+    @State private var newBundleTitle = ""
     @State private var saving = false
     @State private var errorMessage: String?
 
@@ -670,6 +770,25 @@ struct LineEditSheet: View {
                         }
                     }
                 }
+
+                if !optional {
+                    Section {
+                        Picker("Bundle", selection: $bundleChoice) {
+                            Text("No bundle").tag("")
+                            ForEach(bundles, id: \.key) { bundle in
+                                Text(bundle.title).tag(bundle.key)
+                            }
+                            Text("New bundle…").tag("__new__")
+                        }
+                        if bundleChoice == "__new__" {
+                            TextField("Bundle title (shown to the customer)", text: $newBundleTitle)
+                        }
+                    } header: {
+                        Text("Bundle")
+                    } footer: {
+                        Text("Bundled lines show the customer one titled group with a subtotal; this line's own price stays hidden on quotes and contracts.")
+                    }
+                }
             }
             .scrollDismissesKeyboard(.interactively)
             // Decimal pads have no return key — this adds a Done above them.
@@ -697,6 +816,7 @@ struct LineEditSheet: View {
                 quantity = Int(line.quantity)
                 priceText = String(format: "%.2f", line.unitSalePriceSnapshot)
                 optional = line.isOptional ?? false
+                bundleChoice = line.bundleKey ?? ""
                 if let type = line.discountType, let value = line.discountValue {
                     discountKind = type
                     discountText = type == "percent"
@@ -735,10 +855,41 @@ struct LineEditSheet: View {
                 quoteId: quoteId, lineItemId: line.id, fields: fields,
                 creds: store.quoteCredentials
             )
+            try await applyBundleChange()
             dismiss()
             await onSaved()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Move this line between bundles to match the picker. A line made
+    /// optional above can't be bundled, so it is removed from any bundle.
+    private func applyBundleChange() async throws {
+        let current = line.bundleKey ?? ""
+        let target = optional ? "" : bundleChoice
+        guard target != current else { return }
+        if target == "__new__" {
+            let title = newBundleTitle.trimmingCharacters(in: .whitespaces)
+            guard !title.isEmpty else {
+                throw NSError(domain: "QuotesAPI", code: 400,
+                              userInfo: [NSLocalizedDescriptionKey: "Enter a title for the new bundle."])
+            }
+            _ = try await QuotesAPI.createBundle(
+                quoteId: quoteId, title: title, lineItemIds: [line.id],
+                creds: store.quoteCredentials
+            )
+        } else if target.isEmpty {
+            guard !current.isEmpty else { return }
+            try await QuotesAPI.updateBundle(
+                quoteId: quoteId, key: current, removeLineItemIds: [line.id],
+                creds: store.quoteCredentials
+            )
+        } else {
+            try await QuotesAPI.updateBundle(
+                quoteId: quoteId, key: target, addLineItemIds: [line.id],
+                creds: store.quoteCredentials
+            )
         }
     }
 }

@@ -47,6 +47,10 @@ struct QuoteLineItem: Decodable, Identifiable {
     let optionalSelected: Bool?
     let discountType: String?          // "percent" | "amount"
     let discountValue: Double?
+    // Lines sharing a bundleKey present to the customer as one named group
+    // with a subtotal; internally every line keeps its price and margin.
+    let bundleKey: String?
+    let bundleTitle: String?
     let discountAmount: Double?
     let productCaveatSnapshot: String?
 
@@ -174,6 +178,37 @@ enum QuotesAPI {
 
     static func deleteLineItem(quoteId: Int, lineItemId: Int, creds: QuotesSession.Credentials) async throws {
         _ = try await send(path: "/api/quotes/\(quoteId)/line-items/\(lineItemId)", method: "DELETE", body: nil, creds: creds)
+    }
+
+    // MARK: bundles
+
+    struct QuoteBundle: Decodable { let key: String; let title: String }
+
+    /// Create a bundle from the given lines. Returns the bundle's key.
+    static func createBundle(quoteId: Int, title: String, lineItemIds: [Int], creds: QuotesSession.Credentials) async throws -> String {
+        let data = try await send(
+            path: "/api/quotes/\(quoteId)/bundles", method: "POST",
+            body: ["title": title, "lineItemIds": lineItemIds], creds: creds
+        )
+        return try JSONDecoder().decode(QuoteBundle.self, from: data).key
+    }
+
+    /// Rename a bundle and/or move lines in or out of it.
+    static func updateBundle(
+        quoteId: Int, key: String,
+        title: String? = nil, addLineItemIds: [Int]? = nil, removeLineItemIds: [Int]? = nil,
+        creds: QuotesSession.Credentials
+    ) async throws {
+        var body: [String: Any?] = [:]
+        if let title { body["title"] = title }
+        if let addLineItemIds { body["addLineItemIds"] = addLineItemIds }
+        if let removeLineItemIds { body["removeLineItemIds"] = removeLineItemIds }
+        _ = try await send(path: "/api/quotes/\(quoteId)/bundles/\(key)", method: "PATCH", body: body, creds: creds)
+    }
+
+    /// Dissolve a bundle; its lines stay on the quote with prices shown again.
+    static func deleteBundle(quoteId: Int, key: String, creds: QuotesSession.Credentials) async throws {
+        _ = try await send(path: "/api/quotes/\(quoteId)/bundles/\(key)", method: "DELETE", body: nil, creds: creds)
     }
 
     /// Re-fetch one quote (the single-quote response decodes into the same
