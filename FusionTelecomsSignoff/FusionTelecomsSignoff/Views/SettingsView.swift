@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var store: WorkOrderStore
     @EnvironmentObject var lock: AppLockManager
+    @ObservedObject private var siteReminders = SiteReminderManager.shared
     @Environment(\.dismiss) var dismiss
 
     @State private var name = ""
@@ -78,6 +79,23 @@ struct SettingsView: View {
                     Text("Quote Builder Sign-In")
                 } footer: {
                     Text("Your Quote Builder login, used by the Quotes tab to browse and build quotes. Stored securely like the API key.")
+                }
+
+                Section {
+                    Toggle(isOn: Binding(
+                        get: { siteReminders.enabled },
+                        set: { siteReminders.setEnabled($0, jobs: store.workOrders) }
+                    )) {
+                        Label("Remind me on site", systemImage: "mappin.and.ellipse")
+                    }
+                } header: {
+                    Text("On-Site Reminders")
+                } footer: {
+                    if siteReminders.enabled && !siteReminders.hasAlwaysPermission {
+                        Text("Reminders fire when you arrive at an open job's address. For them to work in the background, allow \u{201C}Always\u{201D} location access for Field Ops in iOS Settings.")
+                    } else {
+                        Text("Get a notification when you arrive at an open job's address, so no visit ends without the sign-off.")
+                    }
                 }
 
                 Section {
