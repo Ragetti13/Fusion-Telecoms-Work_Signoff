@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum QuoteFilter: String, CaseIterable, Identifiable {
-    case all, draft, converted
+    case all, draft, converted, closed
 
     var id: String { rawValue }
 
@@ -10,6 +10,7 @@ enum QuoteFilter: String, CaseIterable, Identifiable {
         case .all: return "All"
         case .draft: return "Draft"
         case .converted: return "Converted"
+        case .closed: return "Closed"
         }
     }
 }
@@ -47,6 +48,8 @@ struct QuotesListView: View {
                 guard quote.isDraft, !quote.isSuperseded else { return false }
             case .converted:
                 guard quote.status == "converted", !quote.isSuperseded else { return false }
+            case .closed:
+                guard quote.isClosed, !quote.isSuperseded else { return false }
             }
             guard !query.isEmpty else { return true }
             let q = query.lowercased()
@@ -204,10 +207,11 @@ struct QuoteRow: View {
 
     @ViewBuilder
     private var statusBadge: some View {
-        if quote.isDraft {
-            badge("Draft", color: .orange)
-        } else {
-            badge("Converted", color: .green)
+        switch quote.status {
+        case "draft": badge("Draft", color: .orange)
+        case "declined": badge("Declined", color: .red)
+        case "lost": badge("Lost", color: .gray)
+        default: badge("Converted", color: .green)
         }
     }
 

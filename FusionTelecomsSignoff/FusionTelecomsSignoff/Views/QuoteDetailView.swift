@@ -18,6 +18,8 @@ struct QuoteDetailView: View {
     @State private var shareItems: [Any]?
     @State private var sharing = false
     @State private var showingConvert = false
+    @State private var closingOutcome: String?   // "declined" | "lost" pending confirmation
+    @State private var closing = false
     @State private var converting = false
     @State private var convertedOrderId: Int?
     @State private var upfrontText = ""
@@ -35,6 +37,9 @@ struct QuoteDetailView: View {
     }
     private var convertedBinding: Binding<Bool> {
         Binding(get: { convertedOrderId != nil }, set: { if !$0 { convertedOrderId = nil } })
+    }
+    private var closingBinding: Binding<Bool> {
+        Binding(get: { closingOutcome != nil }, set: { if !$0 { closingOutcome = nil } })
     }
 
     var body: some View {
@@ -65,6 +70,10 @@ struct QuoteDetailView: View {
             }
             if isDraft {
                 convertSection
+                closeSection
+            }
+            if q.isClosed {
+                reopenSection
             }
         }
         .listStyle(.insetGrouped)
@@ -102,6 +111,19 @@ struct QuoteDetailView: View {
                 ShareSheet(items: shareItems)
             }
         }
+        .confirmationDialog(
+            "Close this quote off as \(closingOutcome == "lost" ? "lost" : "declined")?",
+            isPresented: closingBinding, titleVisibility: .visible
+        ) {
+            Button("Close as \(closingOutcome == "lost" ? "Lost" : "Declined")", role: .destructive) {
+                let outcome = closingOutcome ?? "declined"
+                closingOutcome = nil
+                Task { await closeQuote(outcome) }
+            }
+            Button("Cancel", role: .cancel) { closingOutcome = nil }
+        } message: {
+            Text("The quote becomes read-only and the linked CRM opportunity is marked lost. You can reopen it later.")
+        }
         .confirmationDialog("Convert this quote to an order?", isPresented: $showingConvert, titleVisibility: .visible) {
             Button("Convert to Order") { Task { await convert() } }
             Button("Cancel", role: .cancel) {}
@@ -130,8 +152,8 @@ struct QuoteDetailView: View {
     private var headerSection: some View {
         Section {
             LabeledContent("Status") {
-                Text(isDraft ? "Draft" : "Converted")
-                    .foregroundStyle(isDraft ? .orange : .green)
+                Text(statusLabel)
+                    .foregroundStyle(statusColor)
                     .fontWeight(.semibold)
             }
             if let ref = q.customerReference, !ref.isEmpty {
@@ -433,6 +455,77 @@ struct QuoteDetailView: View {
         do {
             let url = try await QuotesAPI.shareQuoteURL(id: q.id, creds: store.quoteCredentials)
             shareItems = [url]
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private var statusLabel: String {
+        switch q.status {
+        case "draft": return "Draft"
+        case "declined": return "Declined"
+        case "lost": return "Lost"
+        default: return "Converted"
+        }
+    }
+
+    private var statusColor: Color {
+        switch q.status {
+        case "draft": return .orange
+        case "declined": return .red
+        case "lost": return .gray
+        default: return .green
+        }
+    }
+
+    /// Drafts that won't be won are closed off rather than left lingering.
+    private var closeSection: some View {
+        Section {
+            Button(role: .destructive) { closingOutcome = "declined" } label: {
+                Label("Mark as Declined", systemImage: "xmark.circle")
+            }
+            .disabled(closing)
+            Button(role: .destructive) { closingOutcome = "lost" } label: {
+                Label("Mark as Lost", systemImage: "xmark.circle")
+            }
+            .disabled(closing)
+        } header: {
+            Text("Close Off")
+        } footer: {
+            Text("Declined: the customer said no. Lost: they went elsewhere or went quiet. Either way the quote becomes read-only and the CRM opportunity is marked lost.")
+        }
+    }
+
+    private var reopenSection: some View {
+        Section {
+            Button { Task { await reopenQuote() } } label: {
+                Label(closing ? "Reopening…" : "Reopen as Draft", systemImage: "arrow.uturn.backward.circle")
+            }
+            .disabled(closing)
+        } footer: {
+            Text("This quote was closed off as \(q.status == "lost" ? "lost" : "declined") and is read-only. Reopening makes it an editable draft again and reopens the CRM opportunity.")
+        }
+    }
+
+    @MainActor
+    private func closeQuote(_ outcome: String) async {
+        closing = true
+        defer { closing = false }
+        do {
+            try await QuotesAPI.closeQuote(id: q.id, outcome: outcome, creds: store.quoteCredentials)
+            await load()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func reopenQuote() async {
+        closing = true
+        defer { closing = false }
+        do {
+            try await QuotesAPI.reopenQuote(id: q.id, creds: store.quoteCredentials)
+            await load()
         } catch {
             errorMessage = error.localizedDescription
         }

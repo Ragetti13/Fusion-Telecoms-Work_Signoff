@@ -12,7 +12,7 @@ struct QuoteListItem: Decodable, Identifiable {
     let customerId: Int?
     let customerName: String
     let customerReference: String?
-    let status: String                 // "draft" | "converted"
+    let status: String                 // "draft" | "converted" | "declined" | "lost"
     let validDays: Int
     let marginPercent: Double?
     let contractType: String?          // "standard" | "monthly" | "job"
@@ -31,6 +31,7 @@ struct QuoteListItem: Decodable, Identifiable {
     let createdAt: String
 
     var isDraft: Bool { status == "draft" }
+    var isClosed: Bool { status == "declined" || status == "lost" }
     var isSuperseded: Bool { isLatestVersion == false }
 }
 
@@ -240,6 +241,18 @@ enum QuotesAPI {
         let data = try await send(path: "/api/quotes/\(id)/convert", method: "POST", body: body, creds: creds)
         struct Converted: Decodable { let id: Int }
         return try JSONDecoder().decode(Converted.self, from: data).id
+    }
+
+    /// Close a draft off as "declined" (customer said no) or "lost" (went
+    /// elsewhere). The quote becomes read-only and the linked CRM opportunity
+    /// is marked lost; reopening undoes both.
+    static func closeQuote(id: Int, outcome: String, creds: QuotesSession.Credentials) async throws {
+        _ = try await send(path: "/api/quotes/\(id)/close", method: "POST", body: ["outcome": outcome], creds: creds)
+    }
+
+    /// Reopen a declined/lost quote as an editable draft.
+    static func reopenQuote(id: Int, creds: QuotesSession.Credentials) async throws {
+        _ = try await send(path: "/api/quotes/\(id)/reopen", method: "POST", body: nil, creds: creds)
     }
 
     /// Customer-facing signing link for an order (…/o/<token>).
