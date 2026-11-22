@@ -27,6 +27,9 @@ struct QuotesListView: View {
     @State private var errorMessage: String?
     @State private var showingNewQuote = false
     @State private var path: [QuoteListItem] = []
+    /// Scales the empty-state glyphs with the message beneath them, matching
+    /// the pattern in PriceBookView and JobSummaryCard.
+    @ScaledMetric(relativeTo: .largeTitle) private var emptyStateIcon: CGFloat = 52
 
     private var errorBinding: Binding<Bool> {
         Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
@@ -64,7 +67,10 @@ struct QuotesListView: View {
 
                 content
             }
-            .navigationTitle("")
+            // A real title, not "": the back button on a pushed quote takes
+            // its label from here, and VoiceOver had no name for the screen.
+            // The logo still carries the branding from the leading slot.
+            .navigationTitle("Quotes")
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()
             .toolbar {
@@ -118,7 +124,7 @@ struct QuotesListView: View {
     private var signInPrompt: some View {
         VStack(spacing: 14) {
             Image(systemName: "person.badge.key")
-                .font(.system(size: 52))
+                .font(.system(size: emptyStateIcon))
                 .foregroundStyle(Color.brandPink.opacity(0.7))
             Text("Add your Quote Builder username and password in Settings to browse quotes.")
                 .foregroundStyle(.secondary)
@@ -134,7 +140,7 @@ struct QuotesListView: View {
                 ProgressView()
             } else {
                 Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 52))
+                    .font(.system(size: emptyStateIcon))
                     .foregroundStyle(Color.brandPink.opacity(0.7))
                 Text(query.isEmpty ? "No quotes yet." : "No quotes match \u{201C}\(query)\u{201D}.")
                     .foregroundStyle(.secondary)

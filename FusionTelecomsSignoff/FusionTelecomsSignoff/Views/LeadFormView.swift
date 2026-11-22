@@ -54,7 +54,10 @@ struct LeadFormView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .keyboardDoneButton()
-            .navigationTitle("")
+            // Nothing is pushed from this tab, so there is no back button to
+            // label — but an empty title still left VoiceOver with no name for
+            // the screen. Matches the tab's own label.
+            .navigationTitle("New Lead")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { BrandLogoLeading() }
             .brandNavigationBar()

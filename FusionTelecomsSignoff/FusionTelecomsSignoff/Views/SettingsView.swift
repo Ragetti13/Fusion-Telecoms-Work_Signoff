@@ -63,10 +63,17 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    // A real login pair, so it gets the real content types.
+                    // Without these iOS and password managers will neither
+                    // offer saved credentials nor offer to save these — unlike
+                    // the API key above, which is not a password and is
+                    // deliberately left unmarked.
                     TextField("Username", text: $quoteUsername)
+                        .textContentType(.username)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                     SecureField("Password", text: $quotePassword)
+                        .textContentType(.password)
                 } header: {
                     Text("Quote Builder Sign-In")
                 } footer: {

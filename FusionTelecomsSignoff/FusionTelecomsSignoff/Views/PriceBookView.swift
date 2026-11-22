@@ -55,7 +55,9 @@ struct PriceBookView: View {
 
                 content
             }
-            .navigationTitle("")
+            // As with New Lead: nothing is pushed from this tab, but an empty
+            // title left VoiceOver with no name for the screen.
+            .navigationTitle("Price Book")
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()
             .toolbar {
