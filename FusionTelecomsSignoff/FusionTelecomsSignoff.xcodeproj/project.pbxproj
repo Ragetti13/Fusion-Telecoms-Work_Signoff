@@ -31,6 +31,7 @@
 		BFAB0016000000000000000A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1018000000000000000A /* Theme.swift */; };
 		BFAB0017000000000000000A /* QuoteBuilderAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1019000000000000000A /* QuoteBuilderAPI.swift */; };
 		BFAB0030000000000000000A /* QuotesAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1030000000000000000A /* QuotesAPI.swift */; };
+		BFAB0033000000000000000A /* SiteReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1033000000000000000A /* SiteReminderManager.swift */; };
 		BFAB0031000000000000000A /* QuotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1031000000000000000A /* QuotesListView.swift */; };
 		BFAB0032000000000000000A /* QuoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB1032000000000000000A /* QuoteDetailView.swift */; };
 		BFAB0018000000000000000A /* LeadFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAB101A000000000000000A /* LeadFormView.swift */; };
@@ -67,6 +68,7 @@
 		BFAB1018000000000000000A /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		BFAB1019000000000000000A /* QuoteBuilderAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteBuilderAPI.swift; sourceTree = "<group>"; };
 		BFAB1030000000000000000A /* QuotesAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotesAPI.swift; sourceTree = "<group>"; };
+		BFAB1033000000000000000A /* SiteReminderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteReminderManager.swift; sourceTree = "<group>"; };
 		BFAB1031000000000000000A /* QuotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotesListView.swift; sourceTree = "<group>"; };
 		BFAB1032000000000000000A /* QuoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteDetailView.swift; sourceTree = "<group>"; };
 		BFAB101A000000000000000A /* LeadFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadFormView.swift; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 				BFAB1017000000000000000A /* SignoffJobsAPI.swift */,
 				BFAB1019000000000000000A /* QuoteBuilderAPI.swift */,
 				BFAB1030000000000000000A /* QuotesAPI.swift */,
+				BFAB1033000000000000000A /* SiteReminderManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -267,6 +270,7 @@
 				BFAB0015000000000000000A /* SignoffJobsAPI.swift in Sources */,
 				BFAB0017000000000000000A /* QuoteBuilderAPI.swift in Sources */,
 				BFAB0030000000000000000A /* QuotesAPI.swift in Sources */,
+				BFAB0033000000000000000A /* SiteReminderManager.swift in Sources */,
 				BFAB0031000000000000000A /* QuotesListView.swift in Sources */,
 				BFAB0032000000000000000A /* QuoteDetailView.swift in Sources */,
 				BFAB0018000000000000000A /* LeadFormView.swift in Sources */,

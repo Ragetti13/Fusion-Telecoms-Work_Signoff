@@ -39,6 +39,8 @@
 	<string>The camera is used to attach install photos to a job's completion certificate.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Face ID unlocks Field Ops to protect your saved sign-off key and customer details.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>With on-site reminders enabled, your location is used to notify you when you arrive at an open job’s address so the job gets signed off before you leave.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your current location is used to automatically fill in the site address on work orders.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

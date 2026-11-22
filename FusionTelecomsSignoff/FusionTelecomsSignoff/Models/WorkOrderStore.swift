@@ -77,6 +77,8 @@ class WorkOrderStore: ObservableObject {
         KeychainStore.write(signoffAPIKey, for: apiKeyKey)
         UserDefaults.standard.set(quoteUsername, forKey: quoteUserKey)
         KeychainStore.write(quotePassword, for: quotePassKey)
+        // Keep the on-site reminder geofences pointed at the open jobs.
+        SiteReminderManager.shared.refresh(jobs: workOrders)
     }
 
     /// Credentials for the quote-building (bearer-token) endpoints.
