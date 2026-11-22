@@ -119,6 +119,13 @@ final class AppLockManager: ObservableObject {
 
     private var lastBackground: Date?
     private var authenticating = false
+    // Whether we've already auto-prompted for this lock episode. The system
+    // auth sheet flips the scene inactive and back to active when it closes,
+    // so appBecameActive() fires again right after every attempt — without
+    // this flag a failed or cancelled Face/Touch ID attempt re-triggered the
+    // prompt immediately, looping forever until the app was force-quit. One
+    // automatic prompt per lock; after that the Unlock button retries.
+    private var autoPromptedThisLock = false
     private let graceInterval: TimeInterval = 120 // re-lock after 2 min away
 
     private static let enabledKey = "AppLockEnabled"
@@ -162,12 +169,15 @@ final class AppLockManager: ObservableObject {
         guard enabled else { return }
         if let last = lastBackground, Date().timeIntervalSince(last) >= graceInterval {
             isLocked = true
+            autoPromptedThisLock = false
         }
-        if isLocked { authenticate() }
+        lastBackground = nil
+        if isLocked && !autoPromptedThisLock { authenticate() }
     }
 
     func authenticate() {
         guard enabled, isLocked, !authenticating else { return }
+        autoPromptedThisLock = true
         authenticating = true
         let context = LAContext()
         context.localizedFallbackTitle = "Enter Passcode"
