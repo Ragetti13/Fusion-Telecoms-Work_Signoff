@@ -37,6 +37,8 @@ struct SettingsView: View {
 
                 Section {
                     TextField("Your Name / Technician Name", text: $name)
+                        .textContentType(.name)
+                        .textInputAutocapitalization(.words)
                 } header: {
                     Text("Your Details")
                 } footer: {
@@ -46,9 +48,14 @@ struct SettingsView: View {
                 Section {
                     TextField("https://your-server.com", text: $apiURL)
                         .keyboardType(.URL)
+                        .textContentType(.URL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                    // No textContentType: an API key is not a password, and
+                    // offering password AutoFill here would only mislead.
                     SecureField("API Key", text: $apiKey)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                 } header: {
                     Text("Quote Builder Sync")
                 } footer: {
@@ -56,10 +63,17 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    // A real login pair, so it gets the real content types.
+                    // Without these iOS and password managers will neither
+                    // offer saved credentials nor offer to save these — unlike
+                    // the API key above, which is not a password and is
+                    // deliberately left unmarked.
                     TextField("Username", text: $quoteUsername)
+                        .textContentType(.username)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                     SecureField("Password", text: $quotePassword)
+                        .textContentType(.password)
                 } header: {
                     Text("Quote Builder Sign-In")
                 } footer: {

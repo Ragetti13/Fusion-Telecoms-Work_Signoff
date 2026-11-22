@@ -54,7 +54,10 @@ struct LeadFormView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .keyboardDoneButton()
-            .navigationTitle("")
+            // Nothing is pushed from this tab, so there is no back button to
+            // label — but an empty title still left VoiceOver with no name for
+            // the screen. Matches the tab's own label.
+            .navigationTitle("New Lead")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { BrandLogoLeading() }
             .brandNavigationBar()
@@ -66,6 +69,10 @@ struct LeadFormView: View {
             } message: {
                 Text(resultMessage ?? "")
             }
+            .sensoryFeedback(trigger: resultMessage) { _, new in
+                guard new != nil else { return nil }
+                return isError ? .error : .success
+            }
         }
     }
 
@@ -74,7 +81,11 @@ struct LeadFormView: View {
     private var leadSection: some View {
         Section {
             TextField("Contact Name", text: $name)
+                .textContentType(.name)
+                .textInputAutocapitalization(.words)
             TextField("Company", text: $company)
+                .textContentType(.organizationName)
+                .textInputAutocapitalization(.words)
         } header: {
             Text("Lead")
         } footer: {
@@ -86,13 +97,16 @@ struct LeadFormView: View {
         Section("Contact") {
             TextField("Email", text: $email)
                 .keyboardType(.emailAddress)
+                .textContentType(.emailAddress)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .onChange(of: email) { lookup = nil }
             TextField("Phone", text: $phone)
                 .keyboardType(.phonePad)
+                .textContentType(.telephoneNumber)
                 .onChange(of: phone) { lookup = nil }
             TextField("Address", text: $address, axis: .vertical)
+                .textContentType(.fullStreetAddress)
                 .lineLimit(2...4)
         }
     }

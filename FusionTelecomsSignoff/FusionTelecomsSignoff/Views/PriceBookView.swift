@@ -32,6 +32,8 @@ struct PriceBookView: View {
     // Set when the server was unreachable and results came from the local cache.
     @State private var usingCache = false
     @State private var cacheDate: Date?
+    /// Scales the empty-state glyph with the message beneath it.
+    @ScaledMetric(relativeTo: .largeTitle) private var emptyStateIcon: CGFloat = 52
 
     private var errorBinding: Binding<Bool> {
         Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
@@ -53,7 +55,9 @@ struct PriceBookView: View {
 
                 content
             }
-            .navigationTitle("")
+            // As with New Lead: nothing is pushed from this tab, but an empty
+            // title left VoiceOver with no name for the screen.
+            .navigationTitle("Price Book")
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()
             .toolbar {
@@ -73,6 +77,7 @@ struct PriceBookView: View {
             .sheet(isPresented: $showingAdd) {
                 AddProductView { Task { await load() } }
             }
+            .sensoryFeedback(.error, trigger: errorMessage) { _, new in new != nil }
             .alert("Couldn't load prices", isPresented: errorBinding) {
                 Button("OK", role: .cancel) { errorMessage = nil }
             } message: {
@@ -97,7 +102,7 @@ struct PriceBookView: View {
                 ProgressView()
             } else {
                 Image(systemName: "sterlingsign.circle")
-                    .font(.system(size: 52))
+                    .font(.system(size: emptyStateIcon))
                     .foregroundStyle(Color.brandPink.opacity(0.7))
                 Text(query.isEmpty ? "Search the Quote Builder price book."
                                    : "No products match \u{201C}\(query)\u{201D}.")
@@ -317,6 +322,7 @@ struct AddProductView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+            .sensoryFeedback(.error, trigger: errorMessage) { _, new in new != nil }
             .alert("Couldn't add product", isPresented: errorBinding) {
                 Button("OK", role: .cancel) { errorMessage = nil }
             } message: {
