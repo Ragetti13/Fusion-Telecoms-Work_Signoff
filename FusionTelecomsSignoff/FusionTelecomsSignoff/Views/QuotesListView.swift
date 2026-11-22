@@ -235,8 +235,14 @@ struct NewQuoteSheet: View {
     @State private var saving = false
     @State private var errorMessage: String?
 
+    @State private var confirmDiscard = false
+
     private var errorBinding: Binding<Bool> {
         Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+    }
+
+    private var isDirty: Bool {
+        !customerName.trimmingCharacters(in: .whitespaces).isEmpty || !reference.isEmpty
     }
 
     var body: some View {
@@ -244,24 +250,39 @@ struct NewQuoteSheet: View {
             Form {
                 Section {
                     TextField("Customer name", text: $customerName)
+                        .submitLabel(.done)
                     TextField("Reference (optional)", text: $reference)
                         .textInputAutocapitalization(.characters)
+                        .submitLabel(.done)
                 } footer: {
                     Text("Creates a draft quote you can add products to straight away.")
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("New Quote")
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") { dismiss() }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        if isDirty { confirmDiscard = true } else { dismiss() }
+                    }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(saving ? "Creating…" : "Create") { Task { await create() } }
-                        .fontWeight(.semibold)
-                        .disabled(saving || customerName.trimmingCharacters(in: .whitespaces).isEmpty)
+                ToolbarItem(placement: .confirmationAction) {
+                    if saving {
+                        ProgressView().tint(.white)
+                    } else {
+                        Button("Create") { Task { await create() } }
+                            .fontWeight(.semibold)
+                            .disabled(customerName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
                 }
+            }
+            // A sheet with typed-in content shouldn't vanish on a stray swipe.
+            .interactiveDismissDisabled(isDirty)
+            .confirmationDialog("Discard this quote?", isPresented: $confirmDiscard, titleVisibility: .visible) {
+                Button("Discard", role: .destructive) { dismiss() }
+                Button("Keep Editing", role: .cancel) {}
             }
             .alert("Couldn't create quote", isPresented: errorBinding) {
                 Button("OK", role: .cancel) { errorMessage = nil }

@@ -113,7 +113,7 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         store.technicianName = name.trimmingCharacters(in: .whitespaces)
                         store.signoffAPIURL = apiURL.trimmingCharacters(in: .whitespaces)

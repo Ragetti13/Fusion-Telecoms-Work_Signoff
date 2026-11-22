@@ -63,6 +63,9 @@ struct QuoteDetailView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .scrollDismissesKeyboard(.interactively)
+        // The upfront % field uses a decimal pad, which has no return key.
+        .keyboardDoneButton()
         .navigationTitle(q.customerName)
         .navigationBarTitleDisplayMode(.inline)
         .brandNavigationBar()
@@ -175,7 +178,6 @@ struct QuoteDetailView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 90)
-                            .onSubmit { Task { await saveUpfront() } }
                     }
                     if upfrontText != upfrontSaved {
                         Button("Save upfront %") { Task { await saveUpfront() } }
@@ -213,14 +215,15 @@ struct QuoteDetailView: View {
                 showingConvert = true
             } label: {
                 HStack {
-                    Spacer()
-                    Text(converting ? "Converting…" : "Convert to Order")
+                    if converting { ProgressView().tint(.white).padding(.trailing, 4) }
+                    Text("Convert to Order")
                         .fontWeight(.semibold)
                     Image(systemName: "arrow.right")
-                    Spacer()
                 }
+                .frame(maxWidth: .infinity)
             }
             .disabled(converting || !canConvert)
+            .brandPrimaryButton()
         } footer: {
             if !canConvert {
                 Text(q.contractType == nil
@@ -532,7 +535,7 @@ struct ProductPickerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
             }
@@ -567,12 +570,14 @@ struct ProductPickerSheet: View {
             Button {
                 Task { await add(item) }
             } label: {
-                Text(saving ? "Adding…" : "Add \(quantity) × \(item.name)")
-                    .frame(maxWidth: .infinity)
+                HStack {
+                    if saving { ProgressView().tint(.white).padding(.trailing, 4) }
+                    Text("Add \(quantity) × \(item.name)")
+                }
+                .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.brandPink)
             .disabled(saving)
+            .brandPrimaryButton()
         }
         .padding()
         .background(Color(.secondarySystemBackground))
@@ -666,19 +671,28 @@ struct LineEditSheet: View {
                     }
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
+            // Decimal pads have no return key — this adds a Done above them.
+            .keyboardDoneButton()
             .navigationTitle("Edit Line")
             .navigationBarTitleDisplayMode(.inline)
             .brandNavigationBar()
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(saving ? "Saving…" : "Save") { Task { await save() } }
-                        .fontWeight(.semibold)
-                        .disabled(saving)
+                ToolbarItem(placement: .confirmationAction) {
+                    if saving {
+                        ProgressView().tint(.white)
+                    } else {
+                        Button("Save") { Task { await save() } }
+                            .fontWeight(.semibold)
+                    }
                 }
             }
+            // Edits in progress shouldn't vanish on a stray swipe; Cancel is
+            // always one tap away and the sheet reopens prefilled anyway.
+            .interactiveDismissDisabled(saving)
             .onAppear {
                 quantity = Int(line.quantity)
                 priceText = String(format: "%.2f", line.unitSalePriceSnapshot)
